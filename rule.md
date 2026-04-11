@@ -28,3 +28,10 @@ The main architectural philosophy of this project is **Zero Cross-Phase Dependen
 ## 🤖 4. AI Tooling
 - **Never Call API Directly in Phase files**.
 - Send prompts through `callLLM()` imported from `core/ai.js`.
+
+## 📝 5. Documentation & Work Logs
+- **Maintain WORKLOG.md**: After every significant run or set of edits, you MUST update `WORKLOG.md` with:
+    - Exact nature of the run (server start, test, etc.).
+    - Detailed list of all files modified or created.
+    - Reason for the changes (bug fix, feature addition, user request).
+- **Consistency**: Ensure the log entries are dated and formatted for readability.

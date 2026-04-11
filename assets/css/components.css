@@ -15,7 +15,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 textarea { resize: vertical; min-height: 80px; }
 
 .input-prefix { position: relative; }
-.input-prefix span { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: .9rem; }
+.input-prefix > span { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: .9rem; pointer-events: none; }
 .input-prefix input { padding-left: 1.7rem; }
 
 /* Buttons */

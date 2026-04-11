@@ -256,6 +256,7 @@ function closeChat() {
    SHELL INIT
 ════════════════════════════════════════════════ */
 export function initShell() {
+    document.getElementById('app-logo')?.addEventListener('click', () => location.reload());
     document.getElementById('btn-history')?.addEventListener('click', openDrawer);
     document.getElementById('btn-close-drawer')?.addEventListener('click', closeDrawer);
     document.getElementById('overlay')?.addEventListener('click', () => { closeDrawer(); closeChat(); });

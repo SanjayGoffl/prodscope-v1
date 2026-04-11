@@ -1,32 +1,161 @@
 <!-- phases/phase1/phase1.html -->
-<div class="phase active">
-    <h1>Product Details</h1>
-    <p class="subtitle">Describe your product and we'll discover the closest market competitors automatically.</p>
-    <div class="card">
-        <div class="card-title"><i class="fa-solid fa-cube"></i> Product Blueprint</div>
+<div class="phase active animated fadeIn">
+    <div class="header">
+        <h1>Product Setup</h1>
+        <p class="subtitle">Define your product and market context to begin the simulation.</p>
+    </div>
+
+    <!-- 1. PRODUCT IDENTITY -->
+    <div class="card mb">
+        <div class="card-title"><i class="fa-solid fa-box"></i> Product Identity</div>
         <div class="form-grid">
-            <div>
+            <div class="form-full">
                 <label>Product Name *</label>
-                <input type="text" id="p-name" placeholder="e.g. iPhone 17 Pro" />
-            </div>
-            <div class="input-prefix">
-                <label>Target Price (USD) *</label>
-                <span>$</span>
-                <input type="number" id="p-price" placeholder="1199" min="0" step="0.01" />
+                <input type="text" id="p-name" placeholder="e.g. TaskFlow" maxlength="50" />
             </div>
             <div class="form-full">
-                <label>Short Description *</label>
-                <textarea id="p-desc" rows="3" placeholder="Describe what the product does, its target audience and primary value proposition..."></textarea>
+                <label>Tagline / One-Liner *</label>
+                <input type="text" id="p-tagline" placeholder="The simplest project manager for small teams" maxlength="120" />
+                <span class="input-hint">120 characters max</span>
+            </div>
+            <div>
+                <label>Product Category *</label>
+                <select id="p-category">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="SaaS">SaaS</option>
+                    <option value="E-commerce">E-commerce</option>
+                    <option value="Fintech">Fintech</option>
+                    <option value="EdTech">EdTech</option>
+                    <option value="HealthTech">HealthTech</option>
+                    <option value="Developer Tools">Developer Tools</option>
+                    <option value="AI/ML">AI/ML</option>
+                    <option value="Other">Other (Specify...)</option>
+                </select>
+                <input type="text" id="p-category-custom" class="mt1 hidden" placeholder="Enter custom category..." />
+            </div>
+            <div>
+                <label>Target Audience *</label>
+                <input type="text" id="p-audience" placeholder="Freelancers, startups, small agencies" />
             </div>
             <div class="form-full">
-                <label>Key Features <span class="text-secondary">(press Enter or comma to add)</span></label>
-                <input type="text" id="p-feat-input" placeholder="e.g. Periscope zoom, USB-C, A17 chip..." />
-                <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.65rem;" id="feat-chips"></div>
+                <label>Description *</label>
+                <textarea id="p-description" rows="3" placeholder="Describe what the product does and its primary value proposition..." maxlength="500"></textarea>
+                <span class="input-hint">500 characters max</span>
             </div>
         </div>
-        <div class="action-bar">
-            <span class="text-sm text-secondary"><i class="fa-solid fa-circle-info"></i> AI-powered competitor discovery uses Gemini search. Ensure your API key is set.</span>
-            <button class="btn btn-primary ml" id="btn-p1-next">Next: Find Competitors <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+
+    <!-- 2. MARKET CONTEXT -->
+    <div class="card mb">
+        <div class="card-title"><i class="fa-solid fa-earth-americas"></i> Market Context</div>
+        <div class="form-grid row-2">
+            <div>
+                <label>Market *</label>
+                <select id="p-market">
+                    <option value="India">India</option>
+                    <option value="Global">Global</option>
+                </select>
+            </div>
+            <div>
+                <label>Segment *</label>
+                <select id="p-segment">
+                    <option value="B2C">B2C</option>
+                    <option value="B2B">B2B</option>
+                    <option value="Enterprise">Enterprise</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PRICING MODEL -->
+    <div class="card mb">
+        <div class="card-title"><i class="fa-solid fa-tags"></i> Pricing Model</div>
+        <div class="pricing-selector mb">
+            <button class="btn-toggle active" data-value="paid">Paid</button>
+            <button class="btn-toggle" data-value="freemium">Freemium</button>
+            <button class="btn-toggle" data-value="free">Free</button>
+        </div>
+
+        <div id="pricing-fields" class="form-grid row-3">
+            <div>
+                <label>Billing Cycle *</label>
+                <select id="p-billing">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="one-time">One-time</option>
+                </select>
+            </div>
+            <div class="input-prefix">
+                <label>Base Price (<span id="p-currency-label">INR</span>) *</label>
+                <span id="p-currency-symbol">₹</span>
+                <input type="number" id="p-amount" placeholder="0" min="0" step="0.01" />
+            </div>
+            <div>
+                <label>Currency</label>
+                <input type="text" id="p-currency-display" value="INR (₹)" disabled style="background:var(--surface2);opacity:.7;cursor:not-allowed;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. KEY DIFFERENTIATION -->
+    <div class="card mb">
+        <div class="card-title"><i class="fa-solid fa-bullseye"></i> Key Differentiation</div>
+        <div class="form-full">
+            <label>Key Differentiator *</label>
+            <textarea id="p-differentiator" rows="2" placeholder="e.g. AI-powered task prioritization that adapts to your team's workflow patterns."></textarea>
+        </div>
+    </div>
+
+    <!-- 5. FEATURES -->
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-list-check"></i> Features</div>
+        <p class="text-sm text-secondary mb">Add each feature with category and priority. Minimum 3 required.</p>
+        
+        <div id="feat-chips" class="chip-container mb"></div>
+
+        <div class="feature-bulk-wrap mb">
+            <details>
+                <summary class="text-sm text-accent" style="cursor:pointer;margin-bottom:.5rem;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bulk Add / Extract from Text
+                </summary>
+                <div class="mt1">
+                    <textarea id="f-bulk-input" rows="3" placeholder="Paste a list of features or a detailed product description, and we'll extract the core features for you..."></textarea>
+                    <button class="btn btn-secondary btn-sm mt1" id="btn-extract-feat">
+                        <i class="fa-solid fa-microchip"></i> Extract Features with AI
+                    </button>
+                </div>
+            </details>
+        </div>
+
+        <div class="feature-add-row">
+            <div>
+                <label>Feature Name</label>
+                <input type="text" id="f-name" placeholder="e.g. Real-time sync" />
+            </div>
+            <div>
+                <label>Category</label>
+                <select id="f-category">
+                    <option value="Core">Core</option>
+                    <option value="Integration">Integration</option>
+                    <option value="Analytics">Analytics</option>
+                    <option value="Security">Security</option>
+                    <option value="Technical">Technical</option>
+                </select>
+            </div>
+            <div>
+                <label>Priority</label>
+                <select id="f-priority">
+                    <option value="Must-have">Must-have</option>
+                    <option value="Important">Important</option>
+                    <option value="Nice-to-have">Nice-to-have</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="btn-add-feat" style="align-self: flex-end;height: 40px;"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+
+        <div class="action-bar mt-lg">
+            <button class="btn btn-secondary" id="btn-autofill"><i class="fa-solid fa-wand-magic-sparkles"></i> Autofill All (Demo)</button>
+            <button class="btn btn-primary ml" id="btn-p1-next">Next: Add Competitors <i class="fa-solid fa-arrow-right"></i></button>
         </div>
     </div>
 </div>

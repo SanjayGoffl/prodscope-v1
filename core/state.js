@@ -7,10 +7,21 @@
 
 export let state = {
     product: {
-        name: '',
-        price: 0,
-        desc: '',
-        features: []
+        name: "",
+        tagline: "",
+        category: "",
+        audience: "",
+        description: "",
+        market: "India", // India | Global
+        segment: "B2C",  // B2C | B2B | Enterprise
+        pricing: {
+            type: "paid",       // free | freemium | paid
+            billing: "monthly", // monthly | yearly | one-time
+            amount: 0,
+            currency: "INR"     // auto
+        },
+        differentiator: "",
+        features: [] // Each: { name, category, priority }
     },
     competitors: [],
     analysisData: null,

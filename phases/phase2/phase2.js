@@ -61,8 +61,8 @@ export function init() {
         const prompt = `You are a professional market research analyst.
 Identify the 5 closest direct competitors to the product below. Return ONLY a JSON array of objects.
 PRODUCT: ${state.product.name}
-DESCRIPTION: ${state.product.desc}
-FEATURES: ${state.product.features.join(', ')}
+DESCRIPTION: ${state.product.description}
+FEATURES: ${state.product.features.map(f => f.name).join(', ')}
 
 JSON Schema: [{"name": "Name", "domain": "example.com", "url": "https://...", "price": 99}]`;
 

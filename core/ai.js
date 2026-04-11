@@ -19,10 +19,11 @@ export let activeProviderKey = 'gemini';
 
 export const PROVIDERS = {
     gemini: {
-        name: 'Gemini 2.0 Flash',
+        name: 'Gemini 1.5 Flash',
         badge: 'badge-blue',
         call: async (prompt, maxTokens = 4096) => {
-            const model = 'gemini-2.0-flash';
+            const model = 'gemini-1.5-flash';
+            if (!KEYS.gemini) throw new Error('Gemini API key is missing');
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${KEYS.gemini}`;
             const r = await fetch(url, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -141,8 +142,9 @@ export async function initAIEnvs() {
                  if (key === 'OPEN_ROUTER_API_KEY') KEYS.openrouter = val;
              }
         });
+        console.log('[AI] Keys loaded:', Object.keys(KEYS).filter(k => !!KEYS[k]));
     } catch(e) {
-        console.warn('Failed to load local frontend envs (using backend instead)');
+        console.warn('Failed to load local frontend envs:', e.message);
     }
 }
 

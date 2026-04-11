@@ -1,25 +1,152 @@
 /* phases/phase1/phase1.css */
 
-/* Keep styles phase-isolated if necessary */
-.header h1 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-bottom: .3rem;
-}
+.mb { margin-bottom: 1.5rem; }
+.mt-lg { margin-top: 2rem; }
 
-.subtitle {
+.input-hint {
+    display: block;
+    font-size: 0.75rem;
     color: var(--text-secondary);
-    font-size: .9rem;
-    margin-bottom: 2rem;
+    margin-top: 0.3rem;
 }
 
-.remove-feat {
-    background: none;
-    border: none;
-    color: inherit;
+/* Pricing Toggles */
+.pricing-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface2);
+    padding: 0.4rem;
+    border-radius: 10px;
+    width: fit-content;
+}
+
+.btn-toggle {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
     cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    font-size: .9rem;
-    margin-left: 4px;
+    transition: all 0.2s;
+}
+
+.btn-toggle:hover {
+    color: var(--text);
+}
+
+.btn-toggle.active {
+    background: var(--bg);
+    color: var(--accent);
+    border-color: var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Feature Chips */
+.chip-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    min-height: 40px;
+}
+
+.feat-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.5rem 0.8rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.feat-chip-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.feat-chip-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.feat-chip-meta {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.feat-chip-remove {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-secondary);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.feat-chip-remove:hover {
+    background: var(--red);
+    color: white;
+}
+
+/* Grid Variants */
+.row-2 { grid-template-columns: 1fr 1fr; }
+.row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* Feature Add Row */
+.feature-add-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.8rem;
+    padding: 1.2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    align-items: flex-start;
+}
+
+select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237b8ba4'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1rem;
+    cursor: pointer;
+    color-scheme: dark;
+}
+
+select option {
+    background: #0d1526;
+    color: var(--text);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .row-2, .row-3, .feature-add-row {
+        grid-template-columns: 1fr;
+    }
+    .feature-add-row button {
+        width: 100%;
+    }
 }
