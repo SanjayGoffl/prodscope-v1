@@ -1,0 +1,44 @@
+<!-- phases/phase2/phase2.html -->
+<div class="phase active">
+    <h1>Competitor Selection</h1>
+    <p class="subtitle">AI-discovered competitors are listed below. Select which ones to include in the analysis, or add your own.</p>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-magnifying-glass-chart"></i> Discovered Competitors <span class="badge badge-green" id="comp-count-badge">0 found</span></div>
+        <div class="row" style="margin-bottom:1rem;">
+            <button class="btn btn-secondary btn-sm" id="btn-discover-again"><i class="fa-solid fa-rotate"></i> Re-discover</button>
+            <span class="text-sm text-secondary" id="discovery-status">Click to search for competitors via Gemini</span>
+        </div>
+        <div class="comp-grid" id="comp-grid">
+            <!-- populated by JS -->
+        </div>
+    </div>
+
+    <div class="card mt1">
+        <div class="card-title"><i class="fa-solid fa-plus"></i> Add Manually</div>
+        <div class="form-grid">
+            <div>
+                <label>Competitor Name</label>
+                <input type="text" id="m-name" placeholder="Samsung Galaxy S24 Ultra" />
+            </div>
+            <div>
+                <label>Domain</label>
+                <input type="text" id="m-domain" placeholder="samsung.com" />
+            </div>
+            <div class="form-full">
+                <label>Website URL</label>
+                <input type="text" id="m-url" placeholder="https://www.samsung.com/smartphones/galaxy-s24-ultra" />
+            </div>
+        </div>
+        <div class="action-bar">
+            <button class="btn btn-outline btn-sm" id="btn-add-manual"><i class="fa-solid fa-plus"></i> Add Competitor</button>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-secondary" id="btn-p2-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-primary ml" id="btn-p2-next">
+            Run Analysis on Selected (<span id="selected-count">0</span>) <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>

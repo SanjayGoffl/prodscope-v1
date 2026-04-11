@@ -1,0 +1,50 @@
+<!-- phases/phase3/phase3.html -->
+<div class="phase active">
+    <h1>Analyzing Competitors</h1>
+    <p class="subtitle">Crawling websites, extracting features, and building the comparison matrix.</p>
+
+    <div class="card">
+        <div class="pipeline" id="pipeline">
+            <div class="pip-step active" id="pip1">
+                <div class="icon"><i class="fa-solid fa-file-magnifying-glass"></i></div>
+                <div class="label">Reading Input</div>
+            </div>
+            <div class="pip-line" id="pl1"></div>
+            <div class="pip-step" id="pip2">
+                <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                <div class="label">Crawling Sites</div>
+            </div>
+            <div class="pip-line" id="pl2"></div>
+            <div class="pip-step" id="pip3">
+                <div class="icon"><i class="fa-solid fa-tags"></i></div>
+                <div class="label">Extracting Features</div>
+            </div>
+            <div class="pip-line" id="pl3"></div>
+            <div class="pip-step" id="pip4">
+                <div class="icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                <div class="label">Pricing Data</div>
+            </div>
+            <div class="pip-line" id="pl4"></div>
+            <div class="pip-step" id="pip5">
+                <div class="icon"><i class="fa-solid fa-database"></i></div>
+                <div class="label">Building Matrix</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom:.5rem;" id="progress-label" class="text-sm text-secondary">Initializing...</div>
+        <div style="background:var(--surface2);border-radius:20px;height:6px;overflow:hidden;">
+            <div id="prog-bar"
+                style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:20px;width:0%;transition:width .5s ease;">
+            </div>
+        </div>
+
+        <div class="log-box mt1" id="log-box"></div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-secondary" id="btn-p3-back"><i class="fa-solid fa-arrow-left"></i> Cancel</button>
+        <button class="btn btn-primary ml disabled" id="btn-p3-next">
+            View Feature Matrix <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>

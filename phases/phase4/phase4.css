@@ -1,0 +1,59 @@
+/* phases/phase4/phase4.css */
+.table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+    table-layout: fixed;
+}
+
+th {
+    background: rgba(59, 130, 246, .08);
+    padding: .7rem 1rem;
+    text-align: left;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+th:nth-child(1) { width: 15%; min-width: 130px; }
+th:nth-child(2) { width: 25%; min-width: 220px; white-space: normal; line-height: 1.3; }
+
+td {
+    padding: .65rem 1rem;
+    border-top: 1px solid var(--border);
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+td:nth-child(2) { line-height: 1.4; color: var(--text); }
+tr:hover td { background: rgba(255, 255, 255, .02); }
+
+.col-ours { background: rgba(59, 130, 246, .07) !important; }
+th.col-ours { background: rgba(59, 130, 246, .15) !important; color: var(--accent); }
+.yes { color: var(--green); text-align: center; }
+.no { color: var(--red); text-align: center; }
+.partial { color: var(--yellow); text-align: center; }
+
+.chart-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+}
+.chart-card canvas { max-height: 260px; }

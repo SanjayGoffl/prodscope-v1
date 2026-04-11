@@ -1,0 +1,49 @@
+<!-- phases/phase4/phase4.html -->
+<div class="phase active">
+    <h1>Feature Comparison Matrix</h1>
+    <p class="subtitle">Direct capability map across your product and each competitor.</p>
+
+    <div class="card">
+        <div class="card-title"><i class="fa-solid fa-table-list"></i> Feature Matrix</div>
+        <div class="row" style="margin-bottom:1rem;flex-wrap:wrap;">
+            <span id="legend-yours" class="badge badge-blue">● Your Product</span>
+            <span class="badge badge-green">✓ Available</span>
+            <span style="color:var(--red);font-size:.8rem;font-weight:600;">✗ Not Available</span>
+            <span class="badge badge-yellow">≈ Partial</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr id="matrix-header">
+                        <!-- populated by JS -->
+                    </tr>
+                </thead>
+                <tbody id="matrix-body">
+                    <!-- populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-card">
+            <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Total Feature Count</div>
+            <canvas id="chart-bar"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Feature Frequency</div>
+            <canvas id="chart-freq"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="card-title"><i class="fa-solid fa-chart-gantt"></i> Category Coverage</div>
+            <canvas id="chart-coverage"></canvas>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-secondary" id="btn-p4-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-primary ml" id="btn-p4-next">
+            View Full Results <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>

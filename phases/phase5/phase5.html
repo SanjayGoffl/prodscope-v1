@@ -1,0 +1,56 @@
+<!-- phases/phase5/phase5.html -->
+<div class="phase active">
+    <h1>Analysis Results</h1>
+    <p class="subtitle">Full market positioning, pricing intelligence, and neutral insight summary.</p>
+
+    <div class="kpi-strip" id="kpi-strip">
+        <!-- populated by JS -->
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="chart-card">
+            <div class="card-title"><i class="fa-solid fa-scale-balanced"></i> Price vs Feature Density</div>
+            <canvas id="chart-scatter"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="card-title"><i class="fa-solid fa-dollar-sign"></i> Pricing Distribution</div>
+            <canvas id="chart-price-dist"></canvas>
+        </div>
+    </div>
+
+    <div class="card mt1">
+        <div class="card-title"><i class="fa-solid fa-file-lines"></i> Neutral Text Summary</div>
+        <ul class="summary-list" id="summary-list">
+            <!-- populated by JS -->
+        </ul>
+    </div>
+
+    <div class="card mt1">
+        <div class="card-title"><i class="fa-solid fa-table"></i> Competitor Overview Table</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Competitor</th>
+                        <th>Price (USD)</th>
+                        <th>Features Found</th>
+                        <th>Feature Coverage</th>
+                        <th>Price vs Ours</th>
+                    </tr>
+                </thead>
+                <tbody id="overview-body">
+                    <!-- populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-secondary" id="btn-p5-back"><i class="fa-solid fa-arrow-left"></i> Back to Matrix</button>
+        <button class="btn btn-outline" id="btn-export"><i class="fa-solid fa-file-export"></i> Export Summary</button>
+        <button class="btn btn-primary ml" id="btn-p5-simulate">
+            <i class="fa-solid fa-flask"></i> Run Market Simulation
+        </button>
+        <button class="btn btn-secondary" id="btn-new-analysis"><i class="fa-solid fa-plus"></i> New Analysis</button>
+    </div>
+</div>

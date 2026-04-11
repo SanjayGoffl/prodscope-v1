@@ -1,0 +1,41 @@
+/* phases/phase3/phase3.css */
+.pipeline {
+    display: flex; align-items: center; gap: 0; margin: 1.5rem 0;
+}
+.pip-step {
+    display: flex; flex-direction: column; align-items: center;
+    gap: .35rem; flex: 1;
+}
+.pip-step .icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2); border: 2px solid var(--border);
+    font-size: .9rem; color: var(--text-secondary); transition: all .4s;
+}
+.pip-step .label { font-size: .72rem; color: var(--text-secondary); text-align: center; }
+.pip-step.done .icon { background: rgba(34, 197, 94, .15); border-color: var(--green); color: var(--green); }
+.pip-step.active .icon {
+    background: rgba(59, 130, 246, .15); border-color: var(--accent);
+    color: var(--accent); animation: pulse 1.5s infinite;
+}
+.pip-line {
+    flex: 1; height: 2px; background: var(--border);
+    max-width: 60px; transition: background .4s;
+}
+.pip-line.done { background: var(--green); }
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, .4); }
+    50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+}
+
+.log-box {
+    background: #050a14; border: 1px solid var(--border);
+    border-radius: 8px; padding: .75rem 1rem; font-size: .775rem;
+    font-family: 'JetBrains Mono', monospace; height: 180px;
+    overflow-y: auto; color: #7dd3fc;
+}
+.log-line { padding: .1rem 0; }
+.log-line.ok { color: var(--green); }
+.log-line.warn { color: var(--yellow); }
+.log-line.err { color: var(--red); }

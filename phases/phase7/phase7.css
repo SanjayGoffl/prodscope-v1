@@ -1,0 +1,12 @@
+/* phases/phase7/phase7.css */
+
+.outcome-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.persona-tbl th, .persona-tbl td {
+    padding: .85rem 1rem;
+    vertical-align: middle;
+}

@@ -1,0 +1,25 @@
+/* phases/phase1/phase1.css */
+
+/* Keep styles phase-isolated if necessary */
+.header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: .9rem;
+    margin-bottom: 2rem;
+}
+
+.remove-feat {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: .9rem;
+    margin-left: 4px;
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProductScope — Market Analysis Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- GLOBAL STYLES -->
+    <link rel="stylesheet" href="assets/css/global.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/animations.css" />
+    
+    <!-- PHASE SPECIFIC OVERRIDES (Injected by Router) -->
+    <link id="phase-styles" rel="stylesheet" href="" />
+</head>
+<body>
+    <!-- [GLOBAL] NAV -->
+    <nav>
+        <div class="logo">
+            <i class="fa-solid fa-microscope"></i>
+            <span>ProductScope <span style="font-weight:300;opacity:.7;">Lab</span></span>
+        </div>
+        <div class="steps">
+            <div class="step-pill active" id="sp1">1. Product</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp2">2. Competitors</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp3">3. Extraction</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp4">4. Matrix</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp5">5. Results</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp6">6. Persona</div>
+            <div class="step-sep"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="step-pill" id="sp7">7. Simulation</div>
+        </div>
+        <div class="row">
+            <button class="btn btn-secondary btn-sm" id="btn-history">
+                <i class="fa-solid fa-clock-rotate-left"></i> History
+                <span class="badge badge-green ml hidden" id="hist-nav-badge">0</span>
+            </button>
+            <button class="btn btn-danger btn-sm" id="btn-reset-all"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+        </div>
+    </nav>
+
+    <!-- [GLOBAL] MAIN CONTENT AREA -->
+    <main id="app-container"></main>
+
+    <!-- [GLOBAL] HISTORY DRAWER -->
+    <div id="history-drawer">
+        <div class="drawer-head">
+            <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i>
+            <h2>Scan History</h2>
+            <span id="hist-count-badge" class="badge badge-green">0 scans</span>
+            <button class="btn btn-secondary btn-sm" id="btn-close-drawer" style="margin-left:auto">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="history-list">
+            <div class="hist-empty"><i class="fa-solid fa-box-open" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>No saved scans yet.<br>Complete an analysis to save it here.</div>
+        </div>
+    </div>
+
+    <!-- [GLOBAL] CHAT FAB -->
+    <button id="chat-fab" title="Chat with your history">
+        <i class="fa-solid fa-comments"></i>
+        <span class="fab-badge hidden" id="fab-badge">0</span>
+    </button>
+
+    <!-- [GLOBAL] CHAT PANEL -->
+    <div id="chat-panel">
+        <div class="chat-head">
+            <i class="fa-solid fa-robot" style="color:var(--accent)"></i>
+            <h3>History Chat</h3>
+            <span class="badge badge-blue" id="chat-model-badge" style="font-size:.65rem;">Groq Llama-3.3-70B</span>
+            <button id="btn-close-chat" style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:.9rem;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="chat-ctx">
+            <div class="ctx-label"><i class="fa-solid fa-database"></i> Context — select which scans to use:</div>
+            <div class="ctx-list" id="ctx-list">
+                <div style="color:var(--text-secondary);font-size:.76rem;">No history yet. Run an analysis first.</div>
+            </div>
+        </div>
+        <div id="chat-messages">
+            <div class="chat-empty">👋 Ask anything about your selected scan(s).<br><br>
+                <span style="font-size:.75rem;">e.g. "Which competitor has the most features?" or "Compare the two scans I selected."</span>
+            </div>
+        </div>
+        <div id="chat-input-row">
+            <textarea id="chat-input" placeholder="Ask about your market data..." rows="1"></textarea>
+            <button id="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- [GLOBAL] OVERLAY + TOAST -->
+    <div id="overlay"></div>
+    <div id="toast"></div>
+
+    <!-- CORE SCRIPTS -->
+    <script type="module" src="core/state.js"></script>
+    <script type="module" src="core/ai.js"></script>
+    <script type="module" src="core/router.js"></script>
+    
+    <!-- [GLOBAL] SHELL LOGIC (History, Chat, UI) -->
+    <script type="module" src="core/shell.js"></script>
+</body>
+</html>

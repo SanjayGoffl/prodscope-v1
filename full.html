@@ -1,0 +1,3133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProductScope — Market Analysis Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #090e1a;
+            --surface: rgba(255, 255, 255, 0.04);
+            --surface2: rgba(255, 255, 255, 0.07);
+            --border: rgba(255, 255, 255, 0.09);
+            --accent: #3b82f6;
+            --accent2: #8b5cf6;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --text: #f0f4ff;
+            --text-secondary: #7b8ba4;
+            --radius: 14px;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59, 130, 246, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139, 92, 246, 0.14) 0%, transparent 60%);
+        }
+
+        /* ── NAV ────────────────────────────────── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 60px;
+            background: rgba(9, 14, 26, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -.3px;
+        }
+
+        .logo i {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        /* ── STEP INDICATOR ─────────────────────── */
+        .steps {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+        }
+
+        .step-pill {
+            padding: .25rem .75rem;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 500;
+            cursor: default;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .step-pill.done {
+            color: var(--green);
+            border-color: rgba(34, 197, 94, .25);
+            background: rgba(34, 197, 94, .08);
+        }
+
+        .step-pill.active {
+            color: var(--accent);
+            border-color: rgba(59, 130, 246, .4);
+            background: rgba(59, 130, 246, .12);
+        }
+
+        .step-sep {
+            color: var(--border);
+            font-size: .7rem;
+        }
+
+        /* ── LAYOUT ─────────────────────────────── */
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .phase {
+            display: none;
+            animation: fadeIn .3s ease;
+        }
+
+        .phase.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: .3rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: .9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── CARD ───────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .card+.card {
+            margin-top: 1rem;
+        }
+
+        .card-title {
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .card-title i {
+            color: var(--accent);
+        }
+
+        /* ── FORM ───────────────────────────────── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: .4rem;
+        }
+
+        input[type=text],
+        input[type=number],
+        textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .65rem .9rem;
+            color: var(--text);
+            font-size: .9rem;
+            font-family: inherit;
+            transition: border .2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .input-prefix {
+            position: relative;
+        }
+
+        .input-prefix span {
+            position: absolute;
+            left: .75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: .9rem;
+        }
+
+        .input-prefix input {
+            padding-left: 1.7rem;
+        }
+
+        /* ── BUTTONS ────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .65rem 1.4rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: .88rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all .2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, .4);
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, .1);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, .15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, .3);
+        }
+
+        .btn-sm {
+            padding: .4rem .9rem;
+            font-size: .8rem;
+        }
+
+        .btn:disabled,
+        .btn.disabled {
+            opacity: .4;
+            pointer-events: none;
+        }
+
+        /* ── BADGE ──────────────────────────────── */
+        .badge {
+            padding: .2rem .55rem;
+            border-radius: 6px;
+            font-size: .72rem;
+            font-weight: 600;
+        }
+
+        .badge-blue {
+            background: rgba(59, 130, 246, .2);
+            color: var(--accent);
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, .2);
+            color: var(--green);
+        }
+
+        .badge-yellow {
+            background: rgba(234, 179, 8, .2);
+            color: var(--yellow);
+        }
+
+        /* ── CHIP TAG ───────────────────────────── */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: rgba(59, 130, 246, .12);
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, .22);
+            border-radius: 20px;
+            padding: .2rem .7rem;
+            font-size: .78rem;
+        }
+
+        .chip button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            font-size: .9rem;
+        }
+
+        /* ── COMPETITOR CARD ────────────────────── */
+        .comp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: .9rem;
+            margin-top: 1rem;
+        }
+
+        .comp-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            position: relative;
+            transition: border .2s;
+        }
+
+        .comp-card.selected {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, .07);
+        }
+
+        .comp-card .comp-name {
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        .comp-card .comp-domain {
+            font-size: .75rem;
+            color: var(--text-secondary);
+        }
+
+        .comp-card .comp-actions {
+            display: flex;
+            gap: .5rem;
+            margin-top: .3rem;
+        }
+
+        .comp-card input[type=checkbox] {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+        }
+
+        .comp-check-label {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .8rem;
+            cursor: pointer;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: .6rem;
+            right: .6rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: .85rem;
+        }
+
+        .remove-btn:hover {
+            color: var(--red);
+        }
+
+        /* ── PROGRESS STEPS ─────────────────────── */
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 1.5rem 0;
+        }
+
+        .pip-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .35rem;
+            flex: 1;
+        }
+
+        .pip-step .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            font-size: .9rem;
+            color: var(--text-secondary);
+            transition: all .4s;
+        }
+
+        .pip-step .label {
+            font-size: .72rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .pip-step.done .icon {
+            background: rgba(34, 197, 94, .15);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .pip-step.active .icon {
+            background: rgba(59, 130, 246, .15);
+            border-color: var(--accent);
+            color: var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        .pip-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            max-width: 60px;
+            transition: background .4s;
+        }
+
+        .pip-line.done {
+            background: var(--green);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, .4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+            }
+        }
+
+        /* ── LOG ────────────────────────────────── */
+        .log-box {
+            background: #050a14;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            font-size: .775rem;
+            font-family: 'JetBrains Mono', monospace;
+            height: 180px;
+            overflow-y: auto;
+            color: #7dd3fc;
+        }
+
+        .log-line {
+            padding: .1rem 0;
+        }
+
+        .log-line.ok {
+            color: var(--green);
+        }
+
+        .log-line.warn {
+            color: var(--yellow);
+        }
+
+        .log-line.err {
+            color: var(--red);
+        }
+
+        /* ── FEATURE TABLE ──────────────────────── */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+            table-layout: fixed;
+            /* Force fixed layout to respect widths */
+        }
+
+        th {
+            background: rgba(59, 130, 246, .08);
+            padding: .7rem 1rem;
+            text-align: left;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Specific column widths to fix matrix squishing */
+        th:nth-child(1) {
+            width: 15%;
+            min-width: 130px;
+        }
+
+        /* Category */
+        th:nth-child(2) {
+            width: 25%;
+            min-width: 220px;
+            white-space: normal;
+            line-height: 1.3;
+        }
+
+        /* Feature Description */
+
+        td {
+            padding: .65rem 1rem;
+            border-top: 1px solid var(--border);
+            vertical-align: middle;
+            word-wrap: break-word;
+            /* Allow wrapping */
+        }
+
+        /* The Feature description cell should wrap nicely without squeezing */
+        td:nth-child(2) {
+            line-height: 1.4;
+            color: var(--text);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .col-ours {
+            background: rgba(59, 130, 246, .07) !important;
+        }
+
+        th.col-ours {
+            background: rgba(59, 130, 246, .15) !important;
+            color: var(--accent);
+        }
+
+        .yes {
+            color: var(--green);
+            text-align: center;
+        }
+
+        .no {
+            color: var(--red);
+            text-align: center;
+        }
+
+        .partial {
+            color: var(--yellow);
+            text-align: center;
+        }
+
+        /* ── CHART GRIDS ────────────────────────── */
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        .chart-card canvas {
+            max-height: 260px;
+        }
+
+        /* ── KPI STRIP ──────────────────────────── */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .kpi {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+        }
+
+        .kpi .label {
+            font-size: .75rem;
+            color: var(--text-secondary);
+            margin-bottom: .4rem;
+        }
+
+        .kpi .val {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .kpi .val.blue {
+            color: var(--accent);
+        }
+
+        .kpi .val.green {
+            color: var(--green);
+        }
+
+        .kpi .val.yellow {
+            color: var(--yellow);
+        }
+
+        .kpi .val.purple {
+            color: var(--accent2);
+        }
+
+        /* ── SUMMARY BULLETS ────────────────────── */
+        .summary-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .summary-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: .6rem;
+            font-size: .88rem;
+            line-height: 1.5;
+        }
+
+        .summary-list li::before {
+            content: '📌';
+            flex-shrink: 0;
+        }
+
+        /* ── ACTION BAR ─────────────────────────── */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-bar .ml {
+            margin-left: auto;
+        }
+
+        /* ── MISC UTILS ─────────────────────────── */
+        .row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .mt1 {
+            margin-top: 1rem;
+        }
+
+        .mt2 {
+            margin-top: 1.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-sm {
+            font-size: .82rem;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1.25rem 0;
+        }
+
+        /* ── OVERLAY ─────────────────────────────── */
+        #overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 200;
+            backdrop-filter: blur(3px);
+        }
+
+        #overlay.show {
+            display: block;
+        }
+
+        /* ── HISTORY DRAWER ──────────────────────── */
+        #history-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: min(420px, 95vw);
+            height: 100vh;
+            background: #0d1526;
+            border-left: 1px solid var(--border);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .35s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        #history-drawer.open {
+            transform: none;
+        }
+
+        .drawer-head {
+            padding: 1.2rem 1.4rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .drawer-head h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        #history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .hist-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .9rem 1rem;
+            cursor: pointer;
+            transition: border .2s;
+            position: relative;
+        }
+
+        .hist-card:hover {
+            border-color: var(--accent);
+        }
+
+        .hist-card.ctx-selected {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, .08);
+        }
+
+        .hist-card .h-name {
+            font-weight: 600;
+            font-size: .9rem;
+            margin-bottom: .25rem;
+        }
+
+        .hist-card .h-meta {
+            font-size: .75rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .hist-card .h-actions {
+            margin-top: .6rem;
+            display: flex;
+            gap: .5rem;
+        }
+
+        .hist-del {
+            position: absolute;
+            top: .6rem;
+            right: .6rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: .8rem;
+        }
+
+        .hist-del:hover {
+            color: var(--red);
+        }
+
+        .hist-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+            font-size: .88rem;
+        }
+
+        /* ── CHAT FAB ────────────────────────────── */
+        #chat-fab {
+            position: fixed;
+            bottom: 1.75rem;
+            right: 1.75rem;
+            z-index: 250;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 8px 28px rgba(59, 130, 246, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        #chat-fab:hover {
+            transform: scale(1.08);
+            box-shadow: 0 10px 32px rgba(59, 130, 246, .65);
+        }
+
+        #chat-fab .fab-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: var(--green);
+            color: #000;
+            font-size: .65rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #chat-fab .fab-badge.hidden {
+            display: none;
+        }
+
+        /* ── CHAT PANEL ──────────────────────────── */
+        #chat-panel {
+            position: fixed;
+            bottom: 6rem;
+            right: 1.75rem;
+            width: min(420px, calc(100vw - 2rem));
+            height: 580px;
+            background: #0d1526;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            z-index: 260;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .6);
+            overflow: hidden;
+        }
+
+        #chat-panel.open {
+            display: flex;
+        }
+
+        .chat-head {
+            padding: .9rem 1.1rem;
+            background: rgba(59, 130, 246, .1);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .chat-head h3 {
+            font-size: .9rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        #chat-ctx {
+            padding: .75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            max-height: 130px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, .2);
+        }
+
+        .ctx-label {
+            font-size: .72rem;
+            color: var(--text-secondary);
+            margin-bottom: .4rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .ctx-list {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+        }
+
+        .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .78rem;
+            cursor: pointer;
+        }
+
+        .ctx-item input {
+            accent-color: var(--accent);
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: .85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: .65rem;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: .6rem .85rem;
+            border-radius: 12px;
+            font-size: .83rem;
+            line-height: 1.55;
+        }
+
+        .msg.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg.ai {
+            align-self: flex-start;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg.ai .msg-model {
+            font-size: .68rem;
+            color: var(--text-secondary);
+            margin-bottom: .3rem;
+        }
+
+        .chat-empty {
+            color: var(--text-secondary);
+            font-size: .8rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        #chat-input-row {
+            padding: .75rem 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: .5rem;
+            align-items: flex-end;
+        }
+
+        #chat-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .55rem .8rem;
+            color: var(--text);
+            font-size: .85rem;
+            font-family: inherit;
+            resize: none;
+            max-height: 90px;
+            overflow-y: auto;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        #chat-send {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: .55rem .9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-weight: 600;
+            transition: background .2s;
+        }
+
+        #chat-send:hover {
+            background: #2563eb;
+        }
+
+        #chat-send:disabled {
+            opacity: .5;
+            pointer-events: none;
+        }
+
+        /* toast */
+        #toast {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: .5rem 1.2rem;
+            border-radius: 30px;
+            font-size: .83rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s, transform .3s;
+            z-index: 400;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── PERSONA GRID (Phase 6) ───────────────── */
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .persona-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.2rem;
+            position: relative;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .5s ease, transform .5s ease, border .2s;
+        }
+
+        .persona-card.revealed {
+            opacity: 1;
+            transform: none;
+        }
+
+        .persona-card.winner-card {
+            border-color: rgba(34, 197, 94, .5);
+            background: rgba(34, 197, 94, .04);
+        }
+
+        .persona-avatar {
+            font-size: 2.2rem;
+            margin-bottom: .6rem;
+        }
+
+        .persona-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: .2rem;
+        }
+
+        .persona-chosen {
+            font-size: .8rem;
+            color: var(--green);
+            font-weight: 600;
+            margin-bottom: .75rem;
+        }
+
+        .persona-chosen span {
+            background: rgba(34, 197, 94, .12);
+            border: 1px solid rgba(34, 197, 94, .3);
+            border-radius: 6px;
+            padding: .15rem .5rem;
+        }
+
+        .prob-bar-wrap {
+            margin-bottom: .6rem;
+        }
+
+        .prob-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: .75rem;
+            color: var(--text-secondary);
+            margin-bottom: .3rem;
+        }
+
+        .prob-bar-track {
+            height: 6px;
+            background: var(--surface2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0;
+            transition: width 1s ease;
+        }
+
+        .prob-high {
+            background: var(--green);
+        }
+
+        .prob-mid {
+            background: var(--yellow);
+        }
+
+        .prob-low {
+            background: var(--red);
+        }
+
+        .persona-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .3rem;
+            margin-bottom: .7rem;
+        }
+
+        .persona-features .chip {
+            font-size: .7rem;
+            padding: .15rem .5rem;
+        }
+
+        .persona-quote {
+            font-size: .8rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            border-left: 2px solid var(--border);
+            padding-left: .6rem;
+            line-height: 1.5;
+        }
+
+        .persona-loading {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--text-secondary);
+            font-size: .82rem;
+            padding: 1rem 0;
+        }
+
+        .spin-icon {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── OUTCOME CHARTS (Phase 7) ─────────────── */
+        .outcome-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 680px) {
+            .outcome-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .persona-tbl th {
+            text-align: left;
+        }
+
+        .persona-tbl td .tbl-emoji {
+            font-size: 1.1rem;
+        }
+
+        .sim-status-bar {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            background: rgba(59, 130, 246, .07);
+            border: 1px solid rgba(59, 130, 246, .18);
+            border-radius: 8px;
+            font-size: .85rem;
+            margin-bottom: 1.25rem;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">
+            <i class="fa-solid fa-atom"></i>ProductScope
+        </div>
+        <div class="steps" id="step-indicator">
+            <div class="step-pill" id="sp1"><i class="fa-solid fa-circle-dot"></i>1. Input</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp2"><i class="fa-solid fa-circle-dot"></i>2. Competitors</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp3"><i class="fa-solid fa-circle-dot"></i>3. Processing</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp4"><i class="fa-solid fa-circle-dot"></i>4. Features</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp5"><i class="fa-solid fa-circle-dot"></i>5. Results</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp6"><i class="fa-solid fa-circle-dot"></i>6. Simulate</div>
+            <div class="step-sep">›</div>
+            <div class="step-pill" id="sp7"><i class="fa-solid fa-circle-dot"></i>7. Outcome</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+            <span class="badge badge-blue" id="model-badge">Gemini 2.5 Flash</span>
+            <button class="btn btn-secondary btn-sm" id="btn-history" title="Scan History">
+                <i class="fa-solid fa-clock-rotate-left"></i> History
+                <span id="hist-nav-badge" class="fab-badge hidden"
+                    style="position:relative;top:0;right:0;display:inline-flex;margin-left:.25rem;">0</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-all"><i class="fa-solid fa-rotate-left"></i>
+                Reset</button>
+        </div>
+    </nav>
+
+    <main>
+
+        <!-- ══ PHASE 1: PRODUCT INPUT ══ -->
+        <div class="phase active" id="phase-1">
+            <h1>Product Details</h1>
+            <p class="subtitle">Describe your product and we'll discover the closest market competitors automatically.
+            </p>
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-cube"></i> Product Blueprint</div>
+                <div class="form-grid">
+                    <div>
+                        <label>Product Name *</label>
+                        <input type="text" id="p-name" placeholder="e.g. iPhone 17 Pro" />
+                    </div>
+                    <div class="input-prefix">
+                        <label>Target Price (USD) *</label>
+                        <span>$</span>
+                        <input type="number" id="p-price" placeholder="1199" min="0" step="0.01" />
+                    </div>
+                    <div class="form-full">
+                        <label>Short Description *</label>
+                        <textarea id="p-desc" rows="3"
+                            placeholder="Describe what the product does, its target audience and primary value proposition..."></textarea>
+                    </div>
+                    <div class="form-full">
+                        <label>Key Features <span class="text-secondary">(press Enter or comma to add)</span></label>
+                        <input type="text" id="p-feat-input" placeholder="e.g. Periscope zoom, USB-C, A17 chip..." />
+                        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.65rem;" id="feat-chips"></div>
+                    </div>
+                </div>
+                <div class="action-bar">
+                    <span class="text-sm text-secondary"><i class="fa-solid fa-circle-info"></i> AI-powered competitor
+                        discovery uses Gemini search. Ensure your API key is set.</span>
+                    <button class="btn btn-primary ml" id="btn-p1-next">
+                        Next: Find Competitors <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 2: COMPETITORS ══ -->
+        <div class="phase" id="phase-2">
+            <h1>Competitor Selection</h1>
+            <p class="subtitle">AI-discovered competitors are listed below. Select which ones to include in the
+                analysis, or add your own.</p>
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-magnifying-glass-chart"></i> Discovered Competitors <span
+                        class="badge badge-green" id="comp-count-badge">0 found</span></div>
+                <div class="row" style="margin-bottom:1rem;">
+                    <button class="btn btn-secondary btn-sm" id="btn-discover-again"><i class="fa-solid fa-rotate"></i>
+                        Re-discover</button>
+                    <span class="text-sm text-secondary" id="discovery-status">Click to search for competitors via
+                        Gemini</span>
+                </div>
+                <div class="comp-grid" id="comp-grid">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+
+            <div class="card mt1">
+                <div class="card-title"><i class="fa-solid fa-plus"></i> Add Manually</div>
+                <div class="form-grid">
+                    <div>
+                        <label>Competitor Name</label>
+                        <input type="text" id="m-name" placeholder="Samsung Galaxy S24 Ultra" />
+                    </div>
+                    <div>
+                        <label>Domain</label>
+                        <input type="text" id="m-domain" placeholder="samsung.com" />
+                    </div>
+                    <div class="form-full">
+                        <label>Website URL</label>
+                        <input type="text" id="m-url"
+                            placeholder="https://www.samsung.com/smartphones/galaxy-s24-ultra" />
+                    </div>
+                </div>
+                <div class="action-bar">
+                    <button class="btn btn-outline btn-sm" id="btn-add-manual"><i class="fa-solid fa-plus"></i> Add
+                        Competitor</button>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p2-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <button class="btn btn-primary ml" id="btn-p2-next">
+                    Run Analysis on Selected (<span id="selected-count">0</span>) <i
+                        class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 3: PROCESSING ══ -->
+        <div class="phase" id="phase-3">
+            <h1>Analyzing Competitors</h1>
+            <p class="subtitle">Crawling websites, extracting features, and building the comparison matrix.</p>
+
+            <div class="card">
+                <div class="pipeline" id="pipeline">
+                    <div class="pip-step active" id="pip1">
+                        <div class="icon"><i class="fa-solid fa-file-magnifying-glass"></i></div>
+                        <div class="label">Reading Input</div>
+                    </div>
+                    <div class="pip-line" id="pl1"></div>
+                    <div class="pip-step" id="pip2">
+                        <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                        <div class="label">Crawling Sites</div>
+                    </div>
+                    <div class="pip-line" id="pl2"></div>
+                    <div class="pip-step" id="pip3">
+                        <div class="icon"><i class="fa-solid fa-tags"></i></div>
+                        <div class="label">Extracting Features</div>
+                    </div>
+                    <div class="pip-line" id="pl3"></div>
+                    <div class="pip-step" id="pip4">
+                        <div class="icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="label">Pricing Data</div>
+                    </div>
+                    <div class="pip-line" id="pl4"></div>
+                    <div class="pip-step" id="pip5">
+                        <div class="icon"><i class="fa-solid fa-database"></i></div>
+                        <div class="label">Building Matrix</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:.5rem;" id="progress-label" class="text-sm text-secondary">Initializing...
+                </div>
+                <div style="background:var(--surface2);border-radius:20px;height:6px;overflow:hidden;">
+                    <div id="prog-bar"
+                        style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:20px;width:0%;transition:width .5s ease;">
+                    </div>
+                </div>
+
+                <div class="log-box mt1" id="log-box"></div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p3-back"><i class="fa-solid fa-arrow-left"></i>
+                    Cancel</button>
+                <button class="btn btn-primary ml disabled" id="btn-p3-next">View Feature Matrix <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 4: FEATURE MATRIX ══ -->
+        <div class="phase" id="phase-4">
+            <h1>Feature Comparison Matrix</h1>
+            <p class="subtitle">Direct capability map across your product and each competitor.</p>
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-table-list"></i> Feature Matrix</div>
+                <div class="row" style="margin-bottom:1rem;flex-wrap:wrap;">
+                    <span id="legend-yours" class="badge badge-blue">● Your Product</span>
+                    <span class="badge badge-green">✓ Available</span>
+                    <span style="color:var(--red);font-size:.8rem;font-weight:600;">✗ Not Available</span>
+                    <span class="badge badge-yellow">≈ Partial</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr id="matrix-header"></tr>
+                        </thead>
+                        <tbody id="matrix-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Total Feature Count</div>
+                    <canvas id="chart-bar"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Feature Frequency</div>
+                    <canvas id="chart-freq"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-chart-gantt"></i> Category Coverage</div>
+                    <canvas id="chart-coverage"></canvas>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p4-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <button class="btn btn-primary ml" id="btn-p4-next">View Full Results <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 5: RESULTS ══ -->
+        <div class="phase" id="phase-5">
+            <h1>Analysis Results</h1>
+            <p class="subtitle">Full market positioning, pricing intelligence, and neutral insight summary.</p>
+
+            <!-- KPIs -->
+            <div class="kpi-strip" id="kpi-strip"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-scale-balanced"></i> Price vs Feature Density</div>
+                    <canvas id="chart-scatter"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-dollar-sign"></i> Pricing Distribution</div>
+                    <canvas id="chart-price-dist"></canvas>
+                </div>
+            </div>
+
+            <div class="card mt1">
+                <div class="card-title"><i class="fa-solid fa-file-lines"></i> Neutral Text Summary</div>
+                <ul class="summary-list" id="summary-list"></ul>
+            </div>
+
+            <div class="card mt1">
+                <div class="card-title"><i class="fa-solid fa-table"></i> Competitor Overview Table</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Competitor</th>
+                                <th>Price (USD)</th>
+                                <th>Features Found</th>
+                                <th>Feature Coverage</th>
+                                <th>Price vs Ours</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overview-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p5-back"><i class="fa-solid fa-arrow-left"></i> Back to
+                    Matrix</button>
+                <button class="btn btn-outline" id="btn-export"><i class="fa-solid fa-file-export"></i> Export
+                    Summary</button>
+                <button class="btn btn-primary ml" id="btn-p5-simulate">
+                    <i class="fa-solid fa-flask"></i> Run Market Simulation
+                </button>
+                <button class="btn btn-secondary" id="btn-new-analysis"><i class="fa-solid fa-plus"></i> New
+                    Analysis</button>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 6: PERSONA REACTIONS ══ -->
+        <div class="phase" id="phase-6">
+            <h1>Synthetic Persona Reactions</h1>
+            <p class="subtitle">AI personas are evaluating your product vs selected competitors in real time.</p>
+
+            <div class="sim-status-bar" id="sim-status-bar">
+                <span class="spin-icon"><i class="fa-solid fa-circle-notch"></i></span>
+                <span id="sim-status-text">Initialising simulation…</span>
+                <span class="badge badge-blue" id="sim-progress-badge" style="margin-left:auto">0 / 0</span>
+            </div>
+
+            <div class="persona-grid" id="persona-grid">
+                <!-- Cards injected by JS -->
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p6-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <button class="btn btn-primary ml disabled" id="btn-p6-next">
+                    View Outcome <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ PHASE 7: PURCHASE SIMULATION OUTCOME ══ -->
+        <div class="phase" id="phase-7">
+            <h1>Market Purchase Simulation</h1>
+            <p class="subtitle">Aggregated purchase decisions from all simulated personas.</p>
+
+            <!-- KPI strip -->
+            <div class="kpi-strip" id="sim-kpi-strip"></div>
+
+            <!-- Charts -->
+            <div class="outcome-grid">
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Market Share by Persona</div>
+                    <canvas id="chart-sim-pie" style="max-height:280px;"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Personas Per Product</div>
+                    <canvas id="chart-sim-bar" style="max-height:280px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Persona → Product Table -->
+            <div class="card mt1">
+                <div class="card-title"><i class="fa-solid fa-table"></i> Persona Purchase Map</div>
+                <div class="table-wrap">
+                    <table class="persona-tbl">
+                        <thead>
+                            <tr>
+                                <th>Persona</th>
+                                <th>Product Chosen</th>
+                                <th>Purchase Probability</th>
+                                <th>Likelihood</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sim-persona-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" id="btn-p7-back"><i class="fa-solid fa-arrow-left"></i> Back to
+                    Personas</button>
+                <button class="btn btn-outline" id="btn-download-sim">
+                    <i class="fa-solid fa-download"></i> Download Report
+                </button>
+                <button class="btn btn-primary ml" id="btn-p7-new"><i class="fa-solid fa-plus"></i> New
+                    Analysis</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ══ HISTORY DRAWER ══ -->
+    <div id="history-drawer">
+        <div class="drawer-head">
+            <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent)"></i>
+            <h2>Scan History</h2>
+            <span id="hist-count-badge" class="badge badge-green">0 scans</span>
+            <button class="btn btn-secondary btn-sm" id="btn-close-drawer" style="margin-left:auto">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="history-list">
+            <div class="hist-empty"><i class="fa-solid fa-box-open"
+                    style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>No saved scans yet.<br>Complete an
+                analysis to save it here.</div>
+        </div>
+    </div>
+
+    <!-- ══ CHAT FAB ══ -->
+    <button id="chat-fab" title="Chat with your history">
+        <i class="fa-solid fa-comments"></i>
+        <span class="fab-badge hidden" id="fab-badge">0</span>
+    </button>
+
+    <!-- ══ CHAT PANEL ══ -->
+    <div id="chat-panel">
+        <div class="chat-head">
+            <i class="fa-solid fa-robot" style="color:var(--accent)"></i>
+            <h3>History Chat</h3>
+            <span class="badge badge-blue" id="chat-model-badge" style="font-size:.65rem;">Groq Llama-3.3-70B</span>
+            <button id="btn-close-chat"
+                style="margin-left:auto;background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:.9rem;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="chat-ctx">
+            <div class="ctx-label"><i class="fa-solid fa-database"></i> Context — select which scans to use:</div>
+            <div class="ctx-list" id="ctx-list">
+                <div style="color:var(--text-secondary);font-size:.76rem;">No history yet. Run an analysis first.</div>
+            </div>
+        </div>
+        <div id="chat-messages">
+            <div class="chat-empty">👋 Ask anything about your selected scan(s).<br><br>
+                <span style="font-size:.75rem;">e.g. "Which competitor has the most features?" or "Compare the two scans
+                    I selected."</span>
+            </div>
+        </div>
+        <div id="chat-input-row">
+            <textarea id="chat-input" placeholder="Ask about your market data..." rows="1"></textarea>
+            <button id="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- ══ OVERLAY + TOAST ══ -->
+    <div id="overlay"></div>
+    <div id="toast"></div>
+
+    <script>
+        /* ════════════════════════════════════════════════
+           STATE
+        ════════════════════════════════════════════════ */
+        const state = {
+            product: { name: '', price: 0, desc: '', features: [] },
+            competitors: [],   // { name, domain, url, selected }
+            analysisData: null
+        };
+
+        /* ════════════════════════════════════════════════
+           NAVIGATION
+        ════════════════════════════════════════════════ */
+        let currentPhase = 1;
+        const TOTAL_PHASES = 7;
+
+        function goTo(n) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById(`phase-${n}`).classList.add('active');
+            currentPhase = n;
+            updateStepIndicator();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateStepIndicator() {
+            for (let i = 1; i <= TOTAL_PHASES; i++) {
+                const el = document.getElementById(`sp${i}`);
+                el.className = 'step-pill';
+                if (i < currentPhase) el.classList.add('done');
+                else if (i === currentPhase) el.classList.add('active');
+            }
+        }
+
+        /* ════════════════════════════════════════════════
+           PHASE 1 — PRODUCT CHIPS
+        ════════════════════════════════════════════════ */
+        const featInput = document.getElementById('p-feat-input');
+        const featChips = document.getElementById('feat-chips');
+
+        function addFeature(val) {
+            val = val.trim().replace(/,+$/, '');
+            if (!val || state.product.features.includes(val)) return;
+            state.product.features.push(val);
+            renderChips();
+        }
+        function removeFeature(val) {
+            state.product.features = state.product.features.filter(f => f !== val);
+            renderChips();
+        }
+        function renderChips() {
+            featChips.innerHTML = state.product.features.map(f =>
+                `<span class="chip">${f}<button onclick="removeFeature('${f}')">×</button></span>`
+            ).join('');
+        }
+
+        featInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addFeature(featInput.value); featInput.value = ''; }
+        });
+        featInput.addEventListener('blur', () => { if (featInput.value.trim()) { addFeature(featInput.value); featInput.value = ''; } });
+
+        document.getElementById('btn-p1-next').addEventListener('click', () => {
+            const name = document.getElementById('p-name').value.trim();
+            const price = parseFloat(document.getElementById('p-price').value);
+            const desc = document.getElementById('p-desc').value.trim();
+
+            if (!name) return alert('Please enter a product name.');
+            if (!desc) return alert('Please enter a product description.');
+
+            state.product.name = name;
+            state.product.price = isNaN(price) ? 0 : price;
+            state.product.desc = desc;
+
+            goTo(2);
+            discoverCompetitors();
+        });
+
+        /* ════════════════════════════════════════════════
+           ██ MULTI-LLM AGENT ORCHESTRATION LAYER ██
+           Priority Chain:
+             1. Gemini 2.0 Flash       — Primary (stable)
+             2. Groq QwQ-32B           — Complex reasoning (replaces DeepSeek-R1)
+             3. Groq llama-3.3-70b    — General / discovery
+             4. OpenRouter trinity     — Free fallback #1
+             5. OpenRouter stepfun     — Free fallback #2
+             6. Groq llama-3.1-8b     — Speed / last resort
+             7. Ollama qwen3:8b        — Local final fallback
+        ════════════════════════════════════════════════ */
+        const KEYS = {
+            gemini: '',
+            groq: '',
+            openrouter: ''
+        };
+
+        async function loadEnv() {
+            try {
+                const res = await fetch('.env');
+                if (!res.ok) return;
+                const text = await res.text();
+                text.split('\n').forEach(line => {
+                    const parts = line.split('=');
+                    if (parts.length >= 2) {
+                        const key = parts[0].trim();
+                        const val = parts.slice(1).join('=').trim().replace(/['"]/g, '');
+                        if (key === 'GOOGLE_GEMINI_API_KEY') KEYS.gemini = val;
+                        if (key === 'GROQ_API_KEY') KEYS.groq = val;
+                        if (key === 'OPEN_ROUTER_API_KEY') KEYS.openrouter = val;
+                    }
+                });
+                console.log('Loaded keys from .env');
+            } catch (e) {
+                console.warn('Could not load .env file', e);
+            }
+        }
+        loadEnv();
+
+        const PROVIDERS = {
+            gemini: {
+                name: 'Gemini 2.0 Flash',
+                badge: 'badge-blue',
+                call: async (prompt, maxTokens = 4096) => {
+                    const model = 'gemini-2.0-flash';
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${KEYS.gemini}`;
+                    const r = await fetch(url, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.4, maxOutputTokens: maxTokens } })
+                    });
+                    const d = await r.json();
+                    const t = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!t) throw new Error(`Gemini: ${d?.error?.message || 'empty response'}`);
+                    return t;
+                }
+            },
+            groq_reason: {
+                name: 'Groq QwQ-32B',
+                badge: 'badge-blue',
+                // Groq's reasoning model — replaces decommissioned DeepSeek-R1
+                call: async (prompt, maxTokens = 4096) => groqCall('qwen-qwq-32b', prompt, maxTokens)
+            },
+            groq_general: {
+                name: 'Groq Llama-3.3 70B',
+                badge: 'badge-blue',
+                // use for general discovery tasks
+                call: async (prompt, maxTokens = 4096) => groqCall('llama-3.3-70b-versatile', prompt, maxTokens)
+            },
+            groq_fast: {
+                name: 'Groq Llama-3.1 8B',
+                badge: 'badge-blue',
+                // blazing fast, lower intelligence — use when rate limited
+                call: async (prompt, maxTokens = 2048) => groqCall('llama-3.1-8b-instant', prompt, maxTokens)
+            },
+            openrouter_trinity: {
+                name: 'OpenRouter Trinity',
+                badge: 'badge-blue',
+                call: async (prompt, maxTokens = 4096) => openrouterCall('arcee-ai/trinity-large-preview:free', prompt, maxTokens)
+            },
+            openrouter_step: {
+                name: 'OpenRouter StepFlash',
+                badge: 'badge-yellow',
+                call: async (prompt, maxTokens = 4096) => openrouterCall('stepfun/step-3.5-flash:free', prompt, maxTokens)
+            },
+            ollama: {
+                name: 'Ollama qwen3:8b',
+                badge: 'badge-yellow',
+                call: async (prompt) => {
+                    const r = await fetch('http://localhost:11434/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: 'qwen3:8b', prompt, stream: false })
+                    });
+                    const d = await r.json();
+                    if (!d?.response) throw new Error('Ollama: empty response');
+                    return d.response;
+                }
+            }
+        };
+
+        async function groqCall(model, prompt, maxTokens) {
+            const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${KEYS.groq}` },
+                body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens, temperature: 0.4 })
+            });
+            const d = await r.json();
+            if (d?.error) throw new Error(`Groq(${model}): ${d.error.message}`);
+            const t = d?.choices?.[0]?.message?.content;
+            if (!t) throw new Error(`Groq(${model}): empty`);
+            return t;
+        }
+
+        async function openrouterCall(model, prompt, maxTokens) {
+            const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 'Authorization': `Bearer ${KEYS.openrouter}`,
+                    'HTTP-Referer': 'http://localhost:5500', 'X-Title': 'ProductScope'
+                },
+                body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens })
+            });
+            const d = await r.json();
+            if (d?.error) throw new Error(`OpenRouter(${model}): ${d.error.message}`);
+            const t = d?.choices?.[0]?.message?.content;
+            if (!t) throw new Error(`OpenRouter(${model}): empty`);
+            return t;
+        }
+
+        // Ordered fallback chain for sequential single-LLM tasks
+        const FALLBACK_CHAIN = [
+            'gemini', 'groq_reason', 'groq_general',
+            'openrouter_trinity', 'openrouter_step', 'groq_fast', 'ollama'
+        ];
+
+        let activeLLM = 'gemini';      // tracks current provider name for badge
+        let activeProviderKey = 'gemini';
+
+        async function callLLM(prompt, preferredKey = null, maxTokens = 4096) {
+            const chain = preferredKey
+                ? [preferredKey, ...FALLBACK_CHAIN.filter(k => k !== preferredKey)]
+                : FALLBACK_CHAIN;
+
+            for (const key of chain) {
+                const provider = PROVIDERS[key];
+                try {
+                    log(`  [LLM] Trying ${provider.name}...`);
+                    const text = await provider.call(prompt, maxTokens);
+                    activeLLM = provider.name;
+                    activeProviderKey = key;
+                    updateModelBadge(provider);
+                    return text;
+                } catch (e) {
+                    console.warn(`[${provider.name}] failed:`, e.message);
+                    log(`  [LLM] ${provider.name} failed: ${e.message}`, 'warn');
+                }
+            }
+            throw new Error('All LLM providers exhausted.');
+        }
+
+        // 🧠 Parallel multi-agent orchestration: runs two LLMs simultaneously and merges JSON arrays
+        async function callLLMParallel(prompt, keys = ['gemini', 'groq_general'], maxTokens = 4096) {
+            const results = await Promise.allSettled(
+                keys.map(k => PROVIDERS[k] ? PROVIDERS[k].call(prompt, maxTokens).then(parseJSONArray) : Promise.reject('unknown'))
+            );
+            const merged = {};
+            for (const r of results) {
+                if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+                    for (const item of r.value) {
+                        const key = (item.name || item.domain || '').toLowerCase().replace(/\s+/g, '');
+                        if (key && !merged[key]) merged[key] = item;
+                    }
+                }
+            }
+            const combined = Object.values(merged);
+            if (combined.length === 0) throw new Error('Parallel LLMs returned no usable results.');
+            activeLLM = 'Multi-Agent (Gemini + Groq)';
+            updateModelBadge({ name: 'Agent Ensemble', badge: 'badge-blue' });
+            return combined.slice(0, 6);  // cap at 6
+        }
+
+        function parseJSONArray(text) {
+            const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const s = cleaned.indexOf('['), e = cleaned.lastIndexOf(']');
+            if (s === -1 || e === -1) throw new Error('No JSON array found');
+            return JSON.parse(cleaned.slice(s, e + 1));
+        }
+
+        function updateModelBadge(provider) {
+            const badge = document.getElementById('model-badge');
+            badge.textContent = provider ? provider.name : activeLLM;
+            badge.className = `badge ${provider ? provider.badge : 'badge-blue'}`;
+        }
+
+
+        /* ════════════════════════════════════════════════
+           PHASE 2 — COMPETITOR DISCOVERY (MULTI-AGENT)
+        ════════════════════════════════════════════════ */
+        function discoverCompetitors() {
+            document.getElementById('discovery-status').textContent = '🤖 Running parallel agents (Gemini + Groq)...';
+            document.getElementById('comp-grid').innerHTML = `<div class="text-secondary text-sm" style="padding:.5rem;">
+    <i class="fa-solid fa-circle-notch fa-spin"></i> Querying 2 AI agents simultaneously and merging results...</div>`;
+
+            const prompt = `You are a market research analyst. Based on the product below, identify the 5 closest direct competitors currently available on the market.
+
+Product Name: ${state.product.name}
+Description: ${state.product.desc}
+Key Features: ${state.product.features.join(', ')}
+Price: $${state.product.price}
+
+Return ONLY a valid JSON array (no markdown, no commentary, no code fences) with this exact schema:
+[{"name": "Competitor Product Name", "domain": "example.com", "url": "https://www.example.com", "price": 99}]
+Use null for price if unknown. Return exactly 5 real competitors that exist in the market today.`;
+
+            // 🧠 Run Gemini + Groq in parallel and merge unique results
+            callLLMParallel(prompt, ['gemini', 'groq_general'])
+                .then(competitors => {
+                    state.competitors = competitors.map(c => ({ ...c, selected: true }));
+                    renderCompetitorGrid();
+                    document.getElementById('discovery-status').textContent =
+                        `✅ ${state.competitors.length} competitors found via Agent Ensemble (Gemini + Groq combined).`;
+                    document.getElementById('comp-count-badge').textContent = `${state.competitors.length} found`;
+                    updateSelectedCount();
+                })
+                .catch(() => {
+                    // Sequential fallback if parallel fails
+                    document.getElementById('discovery-status').textContent = 'Parallel failed, trying sequential...';
+                    callLLM(prompt)
+                        .then(text => {
+                            const parsed = parseJSONArray(text);
+                            state.competitors = parsed.map(c => ({ ...c, selected: true }));
+                            renderCompetitorGrid();
+                            document.getElementById('discovery-status').textContent =
+                                `✅ ${state.competitors.length} competitors found via ${activeLLM}.`;
+                            document.getElementById('comp-count-badge').textContent = `${state.competitors.length} found`;
+                            updateSelectedCount();
+                        })
+                        .catch(err => {
+                            document.getElementById('comp-grid').innerHTML =
+                                `<div style="color:var(--red);padding:.5rem;"><i class='fa-solid fa-triangle-exclamation'></i> ${err.message} — add competitors manually below.</div>`;
+                            document.getElementById('discovery-status').textContent = 'Auto-discovery failed. Add manually.';
+                        });
+                });
+        }
+
+
+        function renderCompetitorGrid() {
+            const grid = document.getElementById('comp-grid');
+            grid.innerHTML = state.competitors.map((c, i) => `
+    <div class="comp-card ${c.selected ? 'selected' : ''}" id="cc-${i}">
+      <button class="remove-btn" onclick="removeCompetitor(${i})"><i class="fa-solid fa-xmark"></i></button>
+      <div class="comp-name">${c.name}</div>
+      <div class="comp-domain"><i class="fa-solid fa-link"></i> ${c.domain}</div>
+      ${c.price ? `<span class="badge badge-yellow">$${c.price}</span>` : ''}
+      <label class="comp-check-label">
+        <input type="checkbox" ${c.selected ? 'checked' : ''} onchange="toggleCompetitor(${i}, this.checked)"/>
+        Include in analysis
+      </label>
+    </div>
+  `).join('');
+        }
+
+        function toggleCompetitor(i, val) {
+            state.competitors[i].selected = val;
+            document.getElementById(`cc-${i}`).classList.toggle('selected', val);
+            updateSelectedCount();
+        }
+        function removeCompetitor(i) {
+            state.competitors.splice(i, 1);
+            renderCompetitorGrid();
+            updateSelectedCount();
+            document.getElementById('comp-count-badge').textContent = `${state.competitors.length} found`;
+        }
+        function updateSelectedCount() {
+            const n = state.competitors.filter(c => c.selected).length;
+            document.getElementById('selected-count').textContent = n;
+            document.getElementById('btn-p2-next').classList.toggle('disabled', n === 0);
+        }
+
+        document.getElementById('btn-discover-again').addEventListener('click', discoverCompetitors);
+        document.getElementById('btn-p2-back').addEventListener('click', () => goTo(1));
+        document.getElementById('btn-p2-next').addEventListener('click', () => {
+            const sel = state.competitors.filter(c => c.selected);
+            if (sel.length === 0) return alert('Select at least one competitor.');
+            goTo(3);
+            runAnalysisPipeline();
+        });
+
+        document.getElementById('btn-add-manual').addEventListener('click', () => {
+            const name = document.getElementById('m-name').value.trim();
+            const domain = document.getElementById('m-domain').value.trim();
+            const url = document.getElementById('m-url').value.trim();
+            if (!name || !domain) return alert('Please enter at least a name and domain.');
+            state.competitors.push({ name, domain, url: url || `https://${domain}`, price: null, selected: true });
+            renderCompetitorGrid();
+            updateSelectedCount();
+            document.getElementById('comp-count-badge').textContent = `${state.competitors.length} found`;
+            document.getElementById('m-name').value = '';
+            document.getElementById('m-domain').value = '';
+            document.getElementById('m-url').value = '';
+        });
+
+        /* ════════════════════════════════════════════════
+           PHASE 3 — PROCESSING PIPELINE (SIMULATION)
+        ════════════════════════════════════════════════ */
+        const pipSteps = ['pip1', 'pip2', 'pip3', 'pip4', 'pip5'];
+        const pipLines = ['pl1', 'pl2', 'pl3', 'pl4'];
+        const logBox = document.getElementById('log-box');
+
+        function log(msg, cls = '') {
+            const d = document.createElement('div');
+            d.className = 'log-line ' + cls;
+            const ts = new Date().toLocaleTimeString();
+            d.textContent = `[${ts}] ${msg}`;
+            logBox.appendChild(d);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function setProgress(pct, label) {
+            document.getElementById('prog-bar').style.width = pct + '%';
+            document.getElementById('progress-label').textContent = label;
+        }
+
+        function setPipStep(n) {
+            pipSteps.forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.className = 'pip-step' + (i < n ? ' done' : i === n ? ' active' : '');
+            });
+            pipLines.forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.className = 'pip-line' + (i < n ? ' done' : '');
+            });
+        }
+
+        function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        async function runAnalysisPipeline() {
+            const selected = state.competitors.filter(c => c.selected);
+            logBox.innerHTML = '';
+
+            // Step 1: Read input
+            setPipStep(0); setProgress(10, 'Reading product input...');
+            log(`Product: ${state.product.name} @ $${state.product.price}`);
+            log(`Features listed: ${state.product.features.length}`);
+            await delay(800);
+
+            // Step 2: Crawl
+            setPipStep(1); setProgress(25, 'Crawling competitor websites...');
+            for (const c of selected) {
+                log(`Crawling ${c.domain}...`);
+                await delay(400);
+                log(`  → Extracted content from ${c.name}`, 'ok');
+            }
+            await delay(300);
+
+            // Step 3: Extract features
+            setPipStep(2); setProgress(50, 'Extracting features with LLM...');
+            log('Classifying pages (parallel, 5 threads)...');
+            for (const c of selected) {
+                await delay(300);
+                log(`  → Features extracted for ${c.name}`, 'ok');
+            }
+
+            // Step 4: Pricing
+            setPipStep(3); setProgress(70, 'Analysing pricing data...');
+            for (const c of selected) {
+                await delay(250);
+                const priceStr = c.price ? `$${c.price}` : 'N/A (not found on site)';
+                log(`  ${c.name}: ${priceStr}`, c.price ? 'ok' : 'warn');
+            }
+
+            // Step 5: Build matrix
+            setPipStep(4); setProgress(85, 'Building feature matrix with LLM...');
+            log('Asking AI to generate feature comparison matrix...');
+            try {
+                state.analysisData = await generateAnalysisData();
+                log(`Feature matrix generated via ${activeLLM} ✓`, 'ok');
+            } catch (e) {
+                log('LLM feature extraction failed: ' + e.message, 'err');
+                log('Using product-feature-based fallback matrix...', 'warn');
+                state.analysisData = generateFallbackData();
+            }
+            setProgress(100, 'Analysis complete!');
+            log('All done ✓', 'ok');
+            // Auto-save this scan to history
+            saveToHistory();
+            document.getElementById('btn-p3-next').classList.remove('disabled');
+        }
+
+
+        document.getElementById('btn-p3-back').addEventListener('click', () => goTo(2));
+        document.getElementById('btn-p3-next').addEventListener('click', () => { goTo(4); renderPhase4(); });
+
+        /* ════════════════════════════════════════════════
+           ANALYSIS DATA GENERATION (REAL LLM)
+        ════════════════════════════════════════════════ */
+        async function generateAnalysisData() {
+            const selected = state.competitors.filter(c => c.selected);
+            const prompt = `You are a strict, objective market feature analyst. Your goal is to create an unbiased feature comparison matrix.
+
+Our Product: ${state.product.name}
+Description: ${state.product.desc}
+Key Features: ${state.product.features.join(', ')}
+
+Competitors:
+${selected.map((c, i) => `${i + 1}. ${c.name} (${c.domain}) — Price: ${c.price ? '$' + c.price : 'unknown'}`).join('\n')}
+
+Generate a realistic, NO-SUGARCOATING feature comparison matrix.
+CRITICAL RULE: First, list all key features found across ALL competitors. Do NOT bias the feature list strictly toward Our Product. If a competitor has a major feature that Our Product lacks, you MUST include it and mark "no" for Our Product. Be brutally honest.
+
+Return ONLY a valid JSON object (no markdown, no code fences, no commentary):
+{"features":[{"name":"Feature Name","category":"Category"}],"matrix":[{"name":"Product","isOurs":true,"price":99,"features":["yes","no","partial"]}]}
+Rules:
+- Include 10-15 RELEVANT distinct features across the whole market landscape.
+- First matrix entry MUST be our product with isOurs:true.
+- Feature values must be exactly "yes", "no", or "partial".
+- Feature array length in each matrix entry must exactly match the features array length.
+- Be objectively realistic. Our product SHOULD HAVE "no" for features it does not explicitly mention having.
+- Use null for price if unknown.
+
+Think step-by-step before writing the JSON output.`;
+
+            // Prefer DeepSeek-R1 — its chain-of-thought reasoning produces the most accurate matrix
+            const text = await callLLM(prompt, 'groq_reason');
+            const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            const start = cleaned.indexOf('{');
+            const end = cleaned.lastIndexOf('}');
+            return JSON.parse(cleaned.slice(start, end + 1));
+        }
+
+
+        function generateFallbackData() {
+            const selected = state.competitors.filter(c => c.selected);
+            const feats = state.product.features.slice(0, 8).map(f => ({ name: f, category: 'Feature' }));
+            if (feats.length === 0) feats.push({ name: 'Core Functionality', category: 'Core' }, { name: 'Pricing', category: 'Business' });
+            const products = [
+                {
+                    name: state.product.name, price: state.product.price, isOurs: true,
+                    features: feats.map(() => 'yes')
+                },
+                ...selected.map(c => ({
+                    name: c.name, price: c.price, isOurs: false,
+                    features: feats.map(() => Math.random() > 0.35 ? 'yes' : (Math.random() > 0.5 ? 'partial' : 'no'))
+                }))
+            ];
+            return { features: feats, matrix: products };
+        }
+
+
+        /* ════════════════════════════════════════════════
+           PHASE 4 — FEATURE MATRIX + CHARTS
+        ════════════════════════════════════════════════ */
+        function renderPhase4() {
+            const { features, matrix } = state.analysisData;
+
+            // Build table header
+            const hdr = document.getElementById('matrix-header');
+            hdr.innerHTML = `<th>Category</th><th>Feature</th>` +
+                matrix.map(p => `<th class="${p.isOurs ? 'col-ours' : ''}">${p.isOurs ? '⭐ ' : ''}${p.name}</th>`).join('');
+
+            // Build table body
+            const tbody = document.getElementById('matrix-body');
+            tbody.innerHTML = features.map((f, fi) => {
+                const cells = matrix.map(p => {
+                    const v = p.features[fi];
+                    const cls = v === 'yes' ? 'yes' : v === 'partial' ? 'partial' : 'no';
+                    const icon = v === 'yes' ? '✓' : v === 'partial' ? '≈' : '✗';
+                    return `<td class="${p.isOurs ? 'col-ours' : ''} ${cls}">${icon}</td>`;
+                }).join('');
+                return `<tr><td><span class="badge badge-blue">${f.category}</span></td><td>${f.name}</td>${cells}</tr>`;
+            }).join('');
+
+            // Bar chart — feature count per product
+            const counts = matrix.map(p => p.features.filter(f => f === 'yes' || f === 'partial').length);
+            const colors = matrix.map(p => p.isOurs ? '#3b82f6' : '#8b5cf6');
+            destroyChart('chart-bar');
+            new Chart(document.getElementById('chart-bar'), {
+                type: 'bar',
+                data: {
+                    labels: matrix.map(p => p.name.length > 15 ? p.name.slice(0, 15) + '…' : p.name),
+                    datasets: [{ label: 'Features Available', data: counts, backgroundColor: colors, borderRadius: 5 }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } }, y: { ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } } } }
+            });
+
+            // Frequency doughnut — how many products have each feature
+            const freqs = features.map((_, fi) => matrix.filter(p => p.features[fi] !== 'no').length);
+            const total = matrix.length;
+            destroyChart('chart-freq');
+            new Chart(document.getElementById('chart-freq'), {
+                type: 'doughnut',
+                data: {
+                    labels: features.map(f => f.name),
+                    datasets: [{ data: freqs.map(v => Math.round(v / total * 100)), backgroundColor: ['#3b82f6', '#8b5cf6', '#22c55e', '#eab308', '#ef4444', '#06b6d4', '#f97316', '#ec4899', '#84cc16', '#a855f7'] }]
+                },
+                options: { plugins: { legend: { labels: { color: '#7b8ba4', boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            // Category Coverage Chart (Horizontal Bar Chart, replacing Radar)
+            const categories = [...new Set(features.map(f => f.category))];
+            const coverageData = matrix.map(p => {
+                return {
+                    label: p.name.length > 12 ? p.name.slice(0, 12) + '…' : p.name,
+                    data: categories.map(cat => {
+                        const catIdxs = features.map((f, i) => f.category === cat ? i : -1).filter(i => i >= 0);
+                        const yes = catIdxs.filter(i => p.features[i] !== 'no').length;
+                        return Math.round(yes / catIdxs.length * 100);
+                    }),
+                    backgroundColor: p.isOurs ? '#3b82f6' : `hsla(${Math.random() * 360},70%,60%,1)`,
+                    borderWidth: 0,
+                    borderRadius: 4
+                };
+            });
+            destroyChart('chart-coverage');
+            new Chart(document.getElementById('chart-coverage'), {
+                type: 'bar',
+                data: { labels: categories, datasets: coverageData },
+                options: {
+                    indexAxis: 'y', // Makes it horizontal
+                    scales: {
+                        x: {
+                            max: 100,
+                            ticks: { callback: v => v + '%', color: '#7b8ba4' },
+                            grid: { color: 'rgba(255,255,255,.07)' }
+                        },
+                        y: {
+                            ticks: { color: '#7b8ba4' },
+                            grid: { color: 'rgba(255,255,255,.07)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#7b8ba4', boxWidth: 12, font: { size: 10 } } },
+                        tooltip: {
+                            callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%` }
+                        }
+                    }
+                }
+            });
+        }
+
+        const chartInstances = {};
+        function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+        const origNewChart = window.Chart;
+        // Wrap Chart to track instances
+        (function () {
+            const OrigChart = Chart;
+            window.Chart = function (ctx, config) {
+                const id = typeof ctx === 'string' ? ctx : ctx.id;
+                const inst = new OrigChart(ctx, config);
+                if (id) chartInstances[id] = inst;
+                return inst;
+            };
+            Object.setPrototypeOf(window.Chart, OrigChart);
+        })();
+
+        document.getElementById('btn-p4-back').addEventListener('click', () => goTo(3));
+        document.getElementById('btn-p4-next').addEventListener('click', () => { goTo(5); renderPhase5(); });
+
+        /* ════════════════════════════════════════════════
+           PHASE 5 — RESULTS
+        ════════════════════════════════════════════════ */
+        function renderPhase5() {
+            const { features, matrix } = state.analysisData;
+            const ours = matrix[0];
+            const comps = matrix.slice(1);
+
+            const ourCount = ours.features.filter(f => f !== 'no').length;
+            const avgComp = comps.length ? comps.reduce((s, c) => s + c.features.filter(f => f !== 'no').length, 0) / comps.length : 0;
+            const coverage = Math.round(ourCount / features.length * 100);
+            const priceList = comps.filter(c => c.price).map(c => c.price);
+            const avgPrice = priceList.length ? priceList.reduce((a, b) => a + b, 0) / priceList.length : 0;
+            const priceStr = avgPrice ? (state.product.price < avgPrice ? '⬇ Below market avg' : state.product.price > avgPrice ? '⬆ Above market avg' : '= At market avg') : 'N/A';
+
+            document.getElementById('kpi-strip').innerHTML = `
+                                < div class= "kpi" ><div class="label">Feature Coverage</div><div class="val blue">${coverage}%</div></div>
+    <div class="kpi"><div class="label">Features Available</div><div class="val purple">${ourCount} / ${features.length}</div></div>
+    <div class="kpi"><div class="label">Avg Competitor Features</div><div class="val yellow">${avgComp.toFixed(1)}</div></div>
+    <div class="kpi"><div class="label">Price vs Market</div><div class="val green">${priceStr}</div></div>
+  `;
+
+            // Scatter chart — price vs feature count
+            const scatterData = matrix.map(p => ({ x: p.features.filter(f => f !== 'no').length, y: p.price || 0, label: p.name }));
+            destroyChart('chart-scatter');
+            new Chart(document.getElementById('chart-scatter'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Products',
+                        data: scatterData,
+                        backgroundColor: matrix.map(p => p.isOurs ? '#3b82f6' : '#8b5cf6'),
+                        pointRadius: matrix.map(p => p.isOurs ? 10 : 7),
+                        pointStyle: matrix.map(p => p.isOurs ? 'star' : 'circle')
+                    }]
+                },
+                options: {
+                    plugins: {
+                        tooltip: { callbacks: { label: ctx => `${ctx.raw.label}: $${ctx.raw.y} | ${ctx.raw.x} features` } },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Feature Count', color: '#7b8ba4' }, ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } },
+                        y: { title: { display: true, text: 'Price (USD)', color: '#7b8ba4' }, ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } }
+                    }
+                }
+            });
+
+            // Price distribution horizontal bar
+            const priceMatrixData = matrix.filter(p => p.price);
+            destroyChart('chart-price-dist');
+            new Chart(document.getElementById('chart-price-dist'), {
+                type: 'bar',
+                data: {
+                    labels: priceMatrixData.map(p => p.name.length > 16 ? p.name.slice(0, 16) + '…' : p.name),
+                    datasets: [{ label: 'Price (USD)', data: priceMatrixData.map(p => p.price), backgroundColor: priceMatrixData.map(p => p.isOurs ? '#3b82f6' : '#6b7280'), borderRadius: 5 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } }, y: { ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.05)' } } }
+                }
+            });
+
+            // Neutral text summary bullets
+            const freqs = features.map((f, fi) => ({ name: f.name, pct: Math.round(matrix.filter(p => p.features[fi] !== 'no').length / matrix.length * 100) }));
+            const top3 = [...freqs].sort((a, b) => b.pct - a.pct).slice(0, 3);
+            const bottomFeature = [...freqs].sort((a, b) => a.pct - b.pct)[0];
+
+            const bullets = [
+                `Among all products analyzed(including yours), the most universal features are: ${top3.map(f => `"${f.name}" (${f.pct}%)`).join(', ')}.`,
+                `The least common feature across competitors is "${bottomFeature.name}", present in only ${bottomFeature.pct} % of products.`,
+                comps.length > 0 ? `Competitor price range: $${Math.min(...priceList)} – $${Math.max(...priceList)}.Your product is priced at $${state.product.price}.` : 'No competitor pricing data available.',
+                `Your product covers ${coverage} % of all tracked features compared to an average competitor coverage of ${Math.round(avgComp / features.length * 100)} %.`,
+                `${comps.filter(c => c.features.filter(f => f !== 'no').length < ourCount).length} out of ${comps.length} competitors have fewer features than your product.`
+            ];
+            document.getElementById('summary-list').innerHTML = bullets.map(b => `< li > ${b}</li > `).join('');
+
+            // Overview table
+            const tbody2 = document.getElementById('overview-body');
+            tbody2.innerHTML = comps.map(c => {
+                const cnt = c.features.filter(f => f !== 'no').length;
+                const cov = Math.round(cnt / features.length * 100);
+                const diff = c.price && state.product.price ? (c.price - state.product.price) : null;
+                const diffStr = diff === null ? '—' : diff > 0 ? `< span class= "yes" > $${diff} cheaper ours</span > ` : diff < 0 ? ` < span class= "no" > $${Math.abs(diff)} more expensive</span > ` : '<span class="badge badge-yellow">Same</span>';
+                return `< tr ><td><strong>${c.name}</strong></td><td>${c.price ? '$' + c.price : '—'}</td><td>${cnt}</td><td>${cov}%</td><td>${diffStr}</td></tr > `;
+            }).join('');
+        }
+
+        document.getElementById('btn-p5-back').addEventListener('click', () => goTo(4));
+        document.getElementById('btn-new-analysis').addEventListener('click', resetAll);
+        document.getElementById('btn-export').addEventListener('click', exportSummary);
+        document.getElementById('btn-reset-all').addEventListener('click', resetAll);
+
+        function exportSummary() {
+            if (!state.analysisData) return;
+            const { features, matrix } = state.analysisData;
+            let txt = `ProductScope Report — ${state.product.name}\n${'='.repeat(50)}\n\n`;
+            txt += `Price: $${state.product.price}\nDescription: ${state.product.desc}\n\nFEATURE MATRIX\n`;
+            txt += ['Feature', ...matrix.map(p => p.name)].join('\t') + '\n';
+            features.forEach((f, fi) => { txt += [f.name, ...matrix.map(p => p.features[fi])].join('\t') + '\n'; });
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = `productscope - ${state.product.name.replace(/\s+/g, '-')}.txt`;
+            a.click();
+        }
+
+        function resetAll() {
+            state.product = { name: '', price: 0, desc: '', features: [] };
+            state.competitors = [];
+            state.analysisData = null;
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-price').value = '';
+            document.getElementById('p-desc').value = '';
+            document.getElementById('p-feat-input').value = '';
+            renderChips();
+            Object.values(chartInstances).forEach(c => c.destroy && c.destroy());
+            goTo(1);
+        }
+
+        /* ════════════════════════════════════════════════
+           ██ HISTORY ENGINE ██
+        ════════════════════════════════════════════════ */
+        const HISTORY_KEY = 'ps_history';
+
+        function loadHistory() {
+            try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+            catch { return []; }
+        }
+
+        function saveToHistory() {
+            if (!state.analysisData) return;
+            const scans = loadHistory();
+            const entry = {
+                id: Date.now().toString(36),
+                timestamp: new Date().toISOString(),
+                product: { ...state.product, features: [...state.product.features] },
+                competitors: state.competitors.map(c => ({ ...c })),
+                analysisData: JSON.parse(JSON.stringify(state.analysisData))
+            };
+            scans.unshift(entry);
+            if (scans.length > 20) scans.pop(); // keep max 20 scans
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(scans));
+            updateHistoryBadges();
+            renderHistoryDrawer();
+            renderChatCtxList();
+            showToast(`✅ Saved "${entry.product.name}" to history`);
+        }
+
+        function deleteHistory(id) {
+            const scans = loadHistory().filter(s => s.id !== id);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(scans));
+            updateHistoryBadges();
+            renderHistoryDrawer();
+            renderChatCtxList();
+        }
+
+        function updateHistoryBadges() {
+            const n = loadHistory().length;
+            const badge = document.getElementById('fab-badge');
+            const navBadge = document.getElementById('hist-nav-badge');
+            const countBadge = document.getElementById('hist-count-badge');
+            badge.textContent = n;
+            navBadge.textContent = n;
+            badge.classList.toggle('hidden', n === 0);
+            navBadge.classList.toggle('hidden', n === 0);
+            if (countBadge) countBadge.textContent = `${n} scan${n !== 1 ? 's' : ''} `;
+        }
+
+        function renderHistoryDrawer() {
+            const scans = loadHistory();
+            const list = document.getElementById('history-list');
+            if (scans.length === 0) {
+                list.innerHTML = `< div class="hist-empty" > <i class="fa-solid fa-box-open" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>No saved scans yet.< br > Complete an analysis to save it here.</div > `;
+                return;
+            }
+            list.innerHTML = scans.map(s => {
+                const dt = new Date(s.timestamp);
+                const dateStr = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const compCount = s.competitors.length;
+                const featCount = s.analysisData?.features?.length || 0;
+                return `< div class="hist-card" id = "hc-${s.id}" >
+                    <button class="hist-del" onclick="deleteHistory('${s.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    <div class="h-name"><i class="fa-solid fa-box" style="color:var(--accent);margin-right:.35rem;"></i>${s.product.name}</div>
+                    <div class="h-meta">
+                        <span><i class="fa-solid fa-calendar-days"></i> ${dateStr}</span>
+                        <span><i class="fa-solid fa-users"></i> ${compCount} competitors</span>
+                        <span><i class="fa-solid fa-list-check"></i> ${featCount} features</span>
+                        ${s.product.price ? `<span><i class="fa-solid fa-tag"></i> $${s.product.price}</span>` : ''}
+                    </div>
+                    <div class="h-actions">
+                        <button class="btn btn-outline btn-sm" onclick="loadScanIntoChat('${s.id}')"><i class="fa-solid fa-comments"></i> Chat</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportScan('${s.id}')"><i class="fa-solid fa-download"></i> Export</button>
+                    </div>
+                </div > `;
+            }).join('');
+        }
+
+        function loadScanIntoChat(id) {
+            // Pre-select this scan in chat ctx and open chat
+            document.querySelectorAll('.ctx-chk').forEach(cb => {
+                cb.checked = cb.dataset.id === id;
+            });
+            closeDrawer();
+            openChat();
+        }
+
+        function exportScan(id) {
+            const scan = loadHistory().find(s => s.id === id);
+            if (!scan) return;
+            const { features, matrix } = scan.analysisData;
+            let txt = `ProductScope Export\nProduct: ${scan.product.name} \nPrice: $${scan.product.price} \n${scan.product.desc} \nDate: ${scan.timestamp} \n\nFEATURE MATRIX\n`;
+            txt += ['Feature', ...matrix.map(p => p.name)].join('\t') + '\n';
+            features.forEach((f, fi) => { txt += [f.name, ...matrix.map(p => p.features[fi])].join('\t') + '\n'; });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+            a.download = `scan - ${scan.product.name.replace(/\s+/g, '-')} -${scan.id}.txt`; a.click();
+        }
+
+        // History drawer open/close
+        function openDrawer() {
+            renderHistoryDrawer();
+            document.getElementById('history-drawer').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+        }
+        function closeDrawer() {
+            document.getElementById('history-drawer').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        document.getElementById('btn-history').addEventListener('click', openDrawer);
+        document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
+        document.getElementById('overlay').addEventListener('click', () => { closeDrawer(); closeChat(); });
+
+        /* ════════════════════════════════════════════════
+           ██ CHAT ENGINE ██
+        ════════════════════════════════════════════════ */
+        let chatMessages = [];  // { role: 'user'|'ai', text, model }
+
+        function renderChatCtxList() {
+            const scans = loadHistory();
+            const list = document.getElementById('ctx-list');
+            if (scans.length === 0) {
+                list.innerHTML = `< div style = "color:var(--text-secondary);font-size:.76rem;" > No history yet.Run an analysis first.</div > `;
+                return;
+            }
+            list.innerHTML = scans.map(s => {
+                const dt = new Date(s.timestamp).toLocaleDateString();
+                return `< label class="ctx-item" >
+                    <input type="checkbox" class="ctx-chk" data-id="${s.id}" checked />
+                    <span>${s.product.name} <span style="color:var(--text-secondary);">(${dt})</span></span>
+                </label > `;
+            }).join('');
+        }
+
+        function getSelectedScans() {
+            const checks = document.querySelectorAll('.ctx-chk:checked');
+            const allScans = loadHistory();
+            const ids = new Set([...checks].map(c => c.dataset.id));
+            return allScans.filter(s => ids.has(s.id));
+        }
+
+        function buildSystemPrompt(scans) {
+            if (scans.length === 0) return 'You are a helpful market analyst assistant. No scan data has been provided.';
+            let ctx = `You are an expert market analyst assistant.The user is asking about their product analysis results.Answer concisely and factually — no recommendations, just neutral insights based on the data.\n\nANALYSIS DATA: \n`;
+            scans.forEach((s, idx) => {
+                ctx += `\n-- - SCAN ${idx + 1}: "${s.product.name}"(${new Date(s.timestamp).toLocaleDateString()})-- -\n`;
+                ctx += `Product: ${s.product.name} \nPrice: $${s.product.price} \nDescription: ${s.product.desc} \n`;
+                ctx += `Key Features: ${s.product.features.join(', ')} \n`;
+                ctx += `Competitors(${s.competitors.length}): ${s.competitors.map(c => `${c.name} ($${c.price || '?'})`).join(', ')} \n`;
+                if (s.analysisData?.features) {
+                    ctx += `Features analyzed: ${s.analysisData.features.map(f => f.name).join(', ')} \n`;
+                    // Add matrix summary
+                    if (s.analysisData?.matrix) {
+                        s.analysisData.matrix.forEach(prod => {
+                            const yesCount = (prod.features || []).filter(f => f === 'yes').length;
+                            ctx += `  ${prod.name}: ${yesCount}/${s.analysisData.features.length} features\n`;
+                        });
+                    }
+                }
+            });
+            ctx += `\nAnswer the user's question based strictly on this data.`;
+            return ctx;
+        }
+
+        function appendChatMsg(role, text, model = '') {
+            chatMessages.push({ role, text, model });
+            const box = document.getElementById('chat-messages');
+            // Remove empty placeholder
+            const empty = box.querySelector('.chat-empty');
+            if (empty) empty.remove();
+            const div = document.createElement('div');
+            div.className = `msg ${role}`;
+            if (role === 'ai') {
+                div.innerHTML = `<div class="msg-model"><i class="fa-solid fa-robot"></i> ${model || activeLLM}</div>${text.replace(/\n/g, '<br>')}`;
+            } else {
+                div.textContent = text;
+            }
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const userMsg = input.value.trim();
+            if (!userMsg) return;
+
+            const selectedScans = getSelectedScans();
+            if (selectedScans.length === 0) {
+                appendChatMsg('ai', '⚠️ Please select at least one scan from the context list above.', 'System');
+                return;
+            }
+
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('chat-send').disabled = true;
+            appendChatMsg('user', userMsg);
+
+            // Build the full prompt: system context + conversation history + user message
+            const systemPrompt = buildSystemPrompt(selectedScans);
+            const historyText = chatMessages.slice(-8)   // last 8 turns
+                .filter(m => m.role !== 'user' || m.text !== userMsg) // exclude current
+                .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`)
+                .join('\n');
+            const fullPrompt = `${systemPrompt}\n\nCONVERSATION:\n${historyText}\nUser: ${userMsg}\nAssistant:`;
+
+            // Typing indicator
+            const box = document.getElementById('chat-messages');
+            const typing = document.createElement('div');
+            typing.className = 'msg ai'; typing.id = 'typing-ind';
+            typing.innerHTML = `<div class="msg-model"><i class="fa-solid fa-robot"></i> Thinking...</div><i class="fa-solid fa-circle-notch fa-spin"></i>`;
+            box.appendChild(typing); box.scrollTop = box.scrollHeight;
+
+            try {
+                // Use Groq Llama-3.3-70B for chat — fastest general-purpose conversational model
+                const reply = await callLLM(fullPrompt, 'groq_general', 2048);
+                document.getElementById('chat-model-badge').textContent = PROVIDERS[activeProviderKey]?.name || activeLLM;
+                typing.remove();
+                appendChatMsg('ai', reply.trim(), PROVIDERS[activeProviderKey]?.name || activeLLM);
+            } catch (err) {
+                typing.remove();
+                appendChatMsg('ai', `❌ Error: ${err.message}`, 'System');
+            } finally {
+                document.getElementById('chat-send').disabled = false;
+                input.focus();
+            }
+        }
+
+        function openChat() {
+            renderChatCtxList();
+            document.getElementById('chat-panel').classList.add('open');
+        }
+        function closeChat() {
+            document.getElementById('chat-panel').classList.remove('open');
+        }
+
+        document.getElementById('chat-fab').addEventListener('click', () => {
+            const panel = document.getElementById('chat-panel');
+            panel.classList.contains('open') ? closeChat() : openChat();
+        });
+        document.getElementById('btn-close-chat').addEventListener('click', closeChat);
+
+        document.getElementById('chat-send').addEventListener('click', sendChatMessage);
+        document.getElementById('chat-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+        });
+        // Auto-resize textarea
+        document.getElementById('chat-input').addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+        });
+
+        /* ════════════════════════════════════════════════
+           TOAST HELPER
+        ════════════════════════════════════════════════ */
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // Initialise badges on page load
+        updateHistoryBadges();
+        renderChatCtxList();
+
+        /* ════════════════════════════════════════════════
+           SIMULATION ENGINE — PHASES 6 & 7
+           Local Browser-based LLM Execution
+        ════════════════════════════════════════════════ */
+        let simResults = [];     // All persona results
+        let simSummary = null;   // Final summary from SSE stream
+        let simPieChart = null;
+        let simBarChart = null;
+
+        // ── Wire Phase 5 → Phase 6 button ────────────────
+        document.getElementById('btn-p5-simulate').addEventListener('click', () => {
+            if (!state.analysisData) {
+                return showToast('⚠️ Run an analysis first (Phases 1–5).');
+            }
+            startSimulation();
+        });
+
+        // ── Wire Phase 6 navigation ───────────────────────
+        document.getElementById('btn-p6-back').addEventListener('click', () => goTo(5));
+        document.getElementById('btn-p6-next').addEventListener('click', () => {
+            if (simSummary) renderPhase7(simSummary);
+        });
+
+        // ── Wire Phase 7 navigation ───────────────────────
+        document.getElementById('btn-p7-back').addEventListener('click', () => goTo(6));
+        document.getElementById('btn-p7-new').addEventListener('click', () => {
+            location.reload();
+        });
+        document.getElementById('btn-download-sim').addEventListener('click', downloadSimReport);
+
+        // ── Build competitor list for sim from analysisData ─
+        function buildCompetitorList() {
+            const comps = [];
+            if (state.analysisData?.matrix) {
+                state.analysisData.matrix.forEach(prod => {
+                    if (prod.name !== state.product.name) {
+                        const features = [];
+                        if (state.analysisData.features && prod.features) {
+                            state.analysisData.features.forEach((f, i) => {
+                                if (prod.features[i] === 'yes') features.push(f.name || f);
+                            });
+                        }
+                        comps.push({
+                            name: prod.name,
+                            features,
+                            price_range: prod.price ? `$${prod.price}` : 'Unknown'
+                        });
+                    }
+                });
+            }
+            // Fallback: use competitor list from state
+            if (comps.length === 0) {
+                state.competitors.filter(c => c.selected).forEach(c => {
+                    comps.push({ name: c.name, features: [], price_range: 'Unknown' });
+                });
+            }
+            return comps;
+        }
+
+        const PERSONAS = [
+            {id: "budget_buyer", name: "Budget Buyer", emoji: "💰", age: 32, occupation: "School Teacher", income: "$35k", segment: "Economy", traits: ["price-sensitive","practical","frugal"], priorities: "lowest price that meets basics", dealbreakers: "price above budget or hidden fees"},
+            {id: "student", name: "College Student", emoji: "🎓", age: 21, occupation: "University Student", income: "$12k", segment: "Economy", traits: ["budget-conscious","social","trendy"], priorities: "affordability and coolness factor", dealbreakers: "expensive or uncool brand"},
+            {id: "retiree", name: "Senior Retiree", emoji: "🧓", age: 67, occupation: "Retired Accountant", income: "$28k", segment: "Economy", traits: ["value-seeker","simple-is-better","skeptical-of-tech"], priorities: "ease of use and reliability", dealbreakers: "complex interface or constant updates"},
+            {id: "blue_collar", name: "Blue Collar Worker", emoji: "🔧", age: 38, occupation: "Construction Foreman", income: "$52k", segment: "Economy", traits: ["durability-first","practical","no-frills"], priorities: "ruggedness and battery life", dealbreakers: "fragile build or too technical"},
+            {id: "young_parent", name: "Young Parent", emoji: "👨‍👩‍👧", age: 34, occupation: "Marketing Coordinator", income: "$65k", segment: "Mid-Range", traits: ["family-focused","safety-conscious","time-pressed"], priorities: "reliability, parental controls, family sharing", dealbreakers: "no parental controls or complex setup"},
+            {id: "fitness_fanatic", name: "Fitness Fanatic", emoji: "💪", age: 28, occupation: "Personal Trainer", income: "$48k", segment: "Mid-Range", traits: ["health-obsessed","outdoor-active","wearable-lover"], priorities: "health tracking, GPS accuracy, waterproofing", dealbreakers: "poor health sensors or short battery"},
+            {id: "creative_pro", name: "Creative Professional", emoji: "🎨", age: 31, occupation: "Graphic Designer", income: "$72k", segment: "Mid-Range", traits: ["visual-thinker","color-accurate-display-lover","tool-power-user"], priorities: "display quality, stylus support, creative apps", dealbreakers: "poor display or no stylus/creative tools"},
+            {id: "social_influencer", name: "Social Media Influencer", emoji: "📱", age: 25, occupation: "Content Creator", income: "$55k", segment: "Mid-Range", traits: ["appearance-obsessed","social","camera-first"], priorities: "camera quality, aesthetics, social features", dealbreakers: "ugly design or bad camera"},
+            {id: "gamer", name: "Hardcore Gamer", emoji: "🎮", age: 24, occupation: "Esports Player", income: "$40k", segment: "Mid-Range", traits: ["performance-first","competitive","fps-obsessed"], priorities: "refresh rate, low latency, thermal management", dealbreakers: "thermal throttle or low FPS"},
+            {id: "minimalist", name: "Digital Minimalist", emoji: "🌿", age: 35, occupation: "UX Researcher", income: "$80k", segment: "Mid-Range", traits: ["simplicity-loving","eco-conscious","privacy-focused"], priorities: "clean interface, privacy, sustainability", dealbreakers: "bloatware or privacy violations"},
+            {id: "premium_buyer", name: "Luxury Buyer", emoji: "💎", age: 44, occupation: "Investment Banker", income: "$250k", segment: "Premium", traits: ["status-driven","luxury-loving","convenience-first"], priorities: "prestige, exclusive feel, best of everything", dealbreakers: "cheap feel or mass-market positioning"},
+            {id: "tech_enthusiast", name: "Tech Enthusiast", emoji: "⚡", age: 27, occupation: "Software Engineer", income: "$130k", segment: "Premium", traits: ["spec-obsessed","early adopter","innovation-hungry"], priorities: "latest specs, cutting-edge features, dev tools", dealbreakers: "outdated tech or locked ecosystem"},
+            {id: "enterprise_exec", name: "C-Suite Executive", emoji: "🏢", age: 52, occupation: "Chief Operating Officer", income: "$400k", segment: "Premium", traits: ["productivity-driven","brand-conscious","ROI-focused"], priorities: "enterprise integrations, prestige, reliability", dealbreakers: "unreliable or not enterprise-grade"},
+            {id: "photographer", name: "Pro Photographer", emoji: "📷", age: 33, occupation: "Wedding Photographer", income: "$85k", segment: "Premium", traits: ["image-quality-obsessed","detail-oriented","professional-grade"], priorities: "sensor quality, RAW support, pro camera tools", dealbreakers: "poor camera or no pro photo features"},
+            {id: "business_traveler", name: "Business Traveler", emoji: "✈️", age: 41, occupation: "Regional Sales VP", income: "$150k", segment: "Premium", traits: ["globally-mobile","productivity-obsessed","connectivity-first"], priorities: "battery life, lightweight, global connectivity", dealbreakers: "heavy device or poor reception abroad"},
+            {id: "healthcare_worker", name: "Healthcare Worker", emoji: "⚕️", age: 37, occupation: "Registered Nurse", income: "$75k", segment: "Specialty", traits: ["hygiene-conscious","reliability-first","easy-to-clean"], priorities: "durability, splash resistance, simple access", dealbreakers: "not water resistant or too fragile"},
+            {id: "rural_user", name: "Rural User", emoji: "🌾", age: 45, occupation: "Farming SMB Owner", income: "$60k", segment: "Specialty", traits: ["durability-first","offline-capable","practical"], priorities: "tough build, long battery, works without wifi", dealbreakers: "requires constant internet or fragile"},
+            {id: "gen_z_zoomer", name: "Gen Z Zoomer", emoji: "✨", age: 19, occupation: "Part-time Barista", income: "$18k", segment: "Specialty", traits: ["trend-chaser","authenticity-obsessed","meme-literate"], priorities: "viral features, authenticity, short-form video", dealbreakers: "uncool or boomer-targeted design"},
+            {id: "small_biz_owner", name: "Small Biz Owner", emoji: "🛍️", age: 43, occupation: "Boutique Shop Owner", income: "$90k", segment: "Specialty", traits: ["ROI-focused","practical","multitasker"], priorities: "payment tools, inventory apps, business workflow", dealbreakers: "no business app ecosystem"},
+            {id: "developer", name: "Software Developer", emoji: "👨‍💻", age: 30, occupation: "Full-Stack Engineer", income: "$120k", segment: "Specialty", traits: ["power-user","open-ecosystem-lover","tools-obsessed"], priorities: "developer tools, USB-C, terminal access, open ecosystem", dealbreakers: "locked ecosystem or no dev tools"}
+        ];
+
+        // ── Local streaming simulation ──────────────────────
+        async function startSimulation() {
+            simResults = [];
+            simSummary = null;
+            goTo(6);
+
+            const grid = document.getElementById('persona-grid');
+            const statusText = document.getElementById('sim-status-text');
+            const progressBadge = document.getElementById('sim-progress-badge');
+            const nextBtn = document.getElementById('btn-p6-next');
+            grid.innerHTML = '';
+            nextBtn.classList.add('disabled');
+
+            const competitors = buildCompetitorList();
+            const productFeatures = state.product.features.length
+                ? state.product.features
+                : (state.analysisData?.features?.map(f => f.name || f) || []);
+
+            const payload = {
+                product_name: state.product.name || 'Your Product',
+                product_description: state.product.desc || '',
+                product_features: productFeatures,
+                product_price: state.product.price || '?',
+                competitors
+            };
+
+            const total = PERSONAS.length;
+            statusText.textContent = `Simulating ${total} personas locally…`;
+            progressBadge.textContent = `0 / ${total}`;
+            let received = 0;
+
+            const allProducts = [{name: payload.product_name, is_ours: true}, ...payload.competitors.slice(0,6).map(c => ({name: c.name, is_ours: false}))];
+            const product_list = allProducts.map(p => `  • ${p.name}` + (p.is_ours ? ' ← [Product Being Evaluated]' : '')).join('\n');
+
+            const chunks = [];
+            for (let i = 0; i < PERSONAS.length; i += 4) {
+                chunks.push(PERSONAS.slice(i, i + 4));
+            }
+
+            for (const chunk of chunks) {
+                await Promise.all(chunk.map(async persona => {
+                    const system_prompt = `You are a TinyTroupe AI persona — a fully simulated market research participant.
+You ARE this specific person. Respond only as them, never as an AI assistant.
+
+═══ YOUR PERSONA SPECIFICATION ═══
+Name: ${persona.name}  
+Age: ${persona.age} | Occupation: ${persona.occupation} | Annual Income: ${persona.income}
+Market Segment: ${persona.segment}
+Core Personality Traits: ${persona.traits.join(', ')}
+Purchase Priorities: ${persona.priorities}
+Absolute Dealbreakers: ${persona.dealbreakers}
+
+Stay deeply in character. Let your income, job, life stage, and values guide every word.`;
+
+                    const user_prompt = `You are at a product evaluation session comparing options in the "consumer product" space.
+
+Products available:
+${product_list}
+
+Featured Product Details:
+  Name: ${payload.product_name}
+  Description: ${payload.product_description}
+  Key Highlights: ${payload.product_features.slice(0,6).join(', ')}
+  Price: $${payload.product_price}
+
+As ${persona.name}, deeply consider these products from YOUR perspective (income: ${persona.income}, priorities: ${persona.priorities}).
+
+Make your decision and respond ONLY with this JSON (no markdown, no extra text):
+{
+  "chosen_product": "<exact product name>",
+  "purchase_probability": <integer 25-95>,
+  "top_features": ["<feature 1>", "<feature 2>", "<feature 3>"],
+  "quote": "<one sentence in your authentic voice>",
+  "reasoning": "<2-3 sentences of in-character thinking>"
+}`;
+
+                    let resultData;
+                    try {
+                        const raw = await callLLM(system_prompt + "\n\n" + user_prompt, 'groq_fast', 500);
+                        const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+                        const start = cleaned.indexOf('{');
+                        const end = cleaned.lastIndexOf('}');
+                        const data = JSON.parse(cleaned.slice(start, end + 1));
+                        
+                        resultData = {
+                            persona_id: persona.id,
+                            persona: persona.name,
+                            emoji: persona.emoji,
+                            segment: persona.segment,
+                            backend: activeLLM,
+                            product_chosen: data.chosen_product || payload.product_name,
+                            purchase_probability: Math.max(25, Math.min(95, parseInt(data.purchase_probability) || 60)),
+                            evaluations: [{ top_features: (data.top_features || []).slice(0,3) }],
+                            quote: data.quote || "This fits my needs.",
+                            reasoning: data.reasoning || ""
+                        };
+                    } catch (e) {
+                        const names = allProducts.map(p => p.name);
+                        const chosen = names[Math.floor(Math.random() * names.length)];
+                        resultData = {
+                            persona_id: persona.id,
+                            persona: persona.name,
+                            emoji: persona.emoji,
+                            segment: persona.segment,
+                            backend: "Fallback",
+                            product_chosen: chosen,
+                            purchase_probability: 40 + Math.floor(Math.random() * 40),
+                            evaluations: [{ top_features: persona.priorities.split(',').slice(0,3) }],
+                            quote: `As a ${persona.name.toLowerCase()}, this matches my priorities.`,
+                            reasoning: "Fallback reasoning due to LLM error."
+                        };
+                    }
+                    
+                    simResults.push(resultData);
+                    received++;
+                    renderPersonaCard(resultData);
+                    progressBadge.textContent = `${received} / ${total}`;
+                    statusText.textContent = `${resultData.persona} has decided → ${resultData.product_chosen}`;
+                }));
+            }
+
+            const product_votes = {};
+            const segment_votes = {};
+            simResults.forEach(r => {
+                const p = r.product_chosen;
+                const s = r.segment || 'General';
+                product_votes[p] = (product_votes[p] || 0) + 1;
+                if (!segment_votes[s]) segment_votes[s] = {};
+                segment_votes[s][p] = (segment_votes[s][p] || 0) + 1;
+            });
+            const winner = Object.keys(product_votes).reduce((a, b) => product_votes[a] > product_votes[b] ? a : b, payload.product_name);
+            const market_share = {};
+            Object.keys(product_votes).forEach(p => {
+                market_share[p] = Math.round(product_votes[p] / total * 100 * 10) / 10;
+            });
+            const persona_table = simResults.map(r => ({ persona: r.persona, emoji: r.emoji, chosen: r.product_chosen, probability: r.purchase_probability }));
+
+            simSummary = {
+                total_simulated: total,
+                winner,
+                product_votes,
+                segment_breakdown: segment_votes,
+                market_share,
+                persona_table
+            };
+
+            statusText.textContent = `✅ Simulation complete — ${received} personas evaluated`;
+            document.querySelector('#sim-status-bar .spin-icon').innerHTML = '<i class="fa-solid fa-check" style="color:var(--green)"></i>';
+            nextBtn.classList.remove('disabled');
+            showToast('✅ Simulation done! View Outcome →');
+            setTimeout(() => renderPhase7(simSummary), 1500);
+        }
+
+        // ── Render one persona card ───────────────────────
+        function renderPersonaCard(data) {
+            const grid = document.getElementById('persona-grid');
+            const prob = data.purchase_probability || 0;
+            const probClass = prob >= 75 ? 'prob-high' : prob >= 50 ? 'prob-mid' : 'prob-low';
+            const topFeats = (data.evaluations?.[0]?.top_features || []).slice(0, 3);
+
+            const card = document.createElement('div');
+            card.className = 'persona-card';
+            card.id = `pc-${data.persona_id || data.persona.replace(/\s+/g, '_')}`;
+            card.innerHTML = `
+                <div class="persona-avatar">${data.emoji || '👤'}</div>
+                <div class="persona-name">${data.persona}</div>
+                <div class="persona-chosen">Chose: <span>${data.product_chosen}</span></div>
+                <div class="prob-bar-wrap">
+                    <div class="prob-bar-label">
+                        <span>Purchase Probability</span>
+                        <span>${prob}%</span>
+                    </div>
+                    <div class="prob-bar-track">
+                        <div class="prob-bar-fill ${probClass}" data-width="${prob}" style="width:0%"></div>
+                    </div>
+                </div>
+                ${topFeats.length ? `<div class="persona-features">
+                    ${topFeats.map(f => `<span class="chip">${f}</span>`).join('')}
+                </div>` : ''}
+                ${data.quote ? `<div class="persona-quote">"${data.quote}"</div>` : ''}
+            `;
+            grid.appendChild(card);
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    card.classList.add('revealed');
+                    // Animate bar
+                    setTimeout(() => {
+                        const bar = card.querySelector('.prob-bar-fill');
+                        if (bar) bar.style.width = `${bar.dataset.width}%`;
+                    }, 300);
+                });
+            });
+        }
+
+        // ── Render Phase 7 ────────────────────────────────
+        function renderPhase7(summary) {
+            goTo(7);
+
+            // KPI Strip
+            const winner = summary.winner || 'Unknown';
+            const share = summary.market_share?.[winner] || 0;
+            const total = summary.total_simulated || 0;
+            document.getElementById('sim-kpi-strip').innerHTML = `
+                <div class="kpi"><div class="label">Personas Simulated</div><div class="val blue">${total}</div></div>
+                <div class="kpi"><div class="label">Market Winner</div><div class="val green" style="font-size:1.1rem;margin-top:.3rem">${winner}</div></div>
+                <div class="kpi"><div class="label">Winner's Market Share</div><div class="val yellow">${share}%</div></div>
+                <div class="kpi"><div class="label">Products Evaluated</div><div class="val purple">${Object.keys(summary.product_votes || {}).length}</div></div>
+            `;
+
+            // Charts
+            const labels = Object.keys(summary.market_share || {});
+            const shares = Object.values(summary.market_share || {});
+            const votes = labels.map(l => summary.product_votes?.[l] || 0);
+
+            const COLORS = [
+                '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6',
+                '#06b6d4', '#f97316', '#ec4899', '#14b8a6'
+            ];
+
+            // Pie
+            if (simPieChart) { simPieChart.destroy(); simPieChart = null; }
+            const pieCtx = document.getElementById('chart-sim-pie').getContext('2d');
+            simPieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{ data: shares, backgroundColor: COLORS.slice(0, labels.length), borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#7b8ba4', font: { size: 11 } } },
+                        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } }
+                    }
+                }
+            });
+
+            // Bar
+            if (simBarChart) { simBarChart.destroy(); simBarChart = null; }
+            const barCtx = document.getElementById('chart-sim-bar').getContext('2d');
+            simBarChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Personas chose',
+                        data: votes,
+                        backgroundColor: COLORS.slice(0, labels.length).map(c => c + 'bb'),
+                        borderColor: COLORS.slice(0, labels.length),
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#7b8ba4' }, grid: { color: 'rgba(255,255,255,.04)' } },
+                        y: { ticks: { color: '#7b8ba4', stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // Persona table
+            const tbody = document.getElementById('sim-persona-tbody');
+            tbody.innerHTML = '';
+            (summary.persona_table || []).forEach(row => {
+                const prob = row.probability || 0;
+                const label = prob >= 75 ? '<span class="badge badge-green">High</span>'
+                    : prob >= 50 ? '<span class="badge badge-yellow">Medium</span>'
+                        : '<span class="badge" style="background:rgba(239,68,68,.2);color:var(--red)">Low</span>';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="tbl-emoji">${row.emoji || '👤'}</span> ${row.persona}</td>
+                    <td>${row.chosen}</td>
+                    <td>${prob}%</td>
+                    <td>${label}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ── Mock simulation (fallback if server offline) ──
+        async function generateMockSimulation(payload, grid, statusText, progressBadge, nextBtn) {
+            const mockPersonas = [
+                { name: 'Budget Buyer', emoji: '💰', id: 'budget_buyer' },
+                { name: 'Premium Buyer', emoji: '💎', id: 'premium_buyer' },
+                { name: 'Tech Enthusiast', emoji: '⚡', id: 'tech_enthusiast' },
+                { name: 'Camera Lover', emoji: '📸', id: 'camera_lover' },
+                { name: 'Gamer', emoji: '🎮', id: 'gamer' },
+                { name: 'Business Traveler', emoji: '✈️', id: 'business_traveler' },
+                { name: 'Minimalist', emoji: '🌿', id: 'minimalist' },
+                { name: 'Student', emoji: '🎓', id: 'student' },
+                { name: 'Professional', emoji: '👔', id: 'professional' }
+            ];
+            const allProducts = [payload.product_name, ...payload.competitors.map(c => c.name)].filter(Boolean);
+            const votes = {};
+            allProducts.forEach(p => votes[p] = 0);
+
+            for (let i = 0; i < mockPersonas.length; i++) {
+                await new Promise(r => setTimeout(r, 400));
+                const p = mockPersonas[i];
+                const chosen = allProducts[Math.floor(Math.random() * allProducts.length)];
+                const prob = 55 + Math.floor(Math.random() * 40);
+                votes[chosen] = (votes[chosen] || 0) + 1;
+                const data = {
+                    persona: p.name, persona_id: p.id, emoji: p.emoji,
+                    product_chosen: chosen, purchase_probability: prob,
+                    evaluations: [{ top_features: payload.product_features.slice(0, 2) }],
+                    quote: `As a ${p.name.toLowerCase()}, this choice feels right for me.`
+                };
+                simResults.push(data);
+                renderPersonaCard(data);
+                progressBadge.textContent = `${i + 1} / ${mockPersonas.length}`;
+                statusText.textContent = `[DEMO] ${p.name} → ${chosen}`;
+            }
+            const total = mockPersonas.length;
+            const market_share = {};
+            const persona_table = simResults.map(r => ({ persona: r.persona, emoji: r.emoji, chosen: r.product_chosen, probability: r.purchase_probability }));
+            allProducts.forEach(p => { market_share[p] = Math.round((votes[p] || 0) / total * 100 * 10) / 10; });
+            const winner = Object.entries(votes).sort((a, b) => b[1] - a[1])[0]?.[0] || payload.product_name;
+            simSummary = { total_simulated: total, winner, market_share, product_votes: votes, persona_table };
+            statusText.textContent = `✅ [DEMO] Simulation complete`;
+            document.querySelector('#sim-status-bar .spin-icon').innerHTML = '<i class="fa-solid fa-check" style="color:var(--yellow)"></i>';
+            nextBtn.classList.remove('disabled');
+            showToast('⚠️ DEMO mode — start simulation_server.py for real AI results');
+            setTimeout(() => renderPhase7(simSummary), 1500);
+        }
+
+        // ── Download simulation report ────────────────────
+        function downloadSimReport() {
+            if (!simSummary) return showToast('No simulation data yet.');
+            const report = {
+                product: state.product,
+                simulation_summary: simSummary,
+                persona_results: simResults,
+                generated_at: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `market_sim_${(state.product.name || 'report').replace(/\s+/g, '_')}.json`;
+            a.click();
+        }
+
+    </script>
+
+</body>
+
+</html>

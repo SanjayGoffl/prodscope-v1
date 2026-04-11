@@ -1,0 +1,51 @@
+/* phases/phase5/phase5.css */
+
+.kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.kpi {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+}
+
+.kpi .label {
+    font-size: .75rem;
+    color: var(--text-secondary);
+    margin-bottom: .4rem;
+}
+
+.kpi .val {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.kpi .val.blue { color: var(--accent); }
+.kpi .val.green { color: var(--green); }
+.kpi .val.yellow { color: var(--yellow); }
+.kpi .val.purple { color: var(--accent2); }
+
+.summary-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+.summary-list li {
+    display: flex; align-items: flex-start; gap: .6rem;
+    font-size: .88rem; line-height: 1.5;
+}
+.summary-list li::before {
+    content: '📌'; flex-shrink: 0;
+}
+
+.table-wrap th, .table-wrap td {
+    padding: .65rem 1rem;
+    border-top: 1px solid var(--border);
+}
+.table-wrap th { background: rgba(59, 130, 246, .08); }
