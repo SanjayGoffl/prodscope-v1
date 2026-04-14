@@ -36,16 +36,13 @@ export function init() {
     }
 
     async function processCompetitors() {
+        // Clear cached data
+        updateState({ analysisData: [] });
+        
         const comps = state.competitors.filter(c => c.selected && c.verified);
         if (comps.length === 0) {
-             const unverified = state.competitors.filter(c => c.selected);
-             if (unverified.length > 0) {
-                 log('Warning: Falling back to unverified competitors for extraction.', 'warn');
-                 comps.push(...unverified);
-             } else {
-                 log('No competitors selected. Aborting.', 'err');
-                 return;
-             }
+            log('Error: No verified competitors selected. Aborting.', 'err');
+            return;
         }
 
         log(`Starting Feature Extraction for ${comps.length} verified competitors...`);
@@ -66,23 +63,29 @@ export function init() {
                     
                     let scrapedText = "";
                     try {
-                        const scrapeRes = await fetch('/api/scrape', {
+                        const scrapeRes = await fetch('http://127.0.0.1:8000/api/scrape', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ name: c.name, url: c.url })
                         });
                         if (scrapeRes.ok) {
                             const scrapeData = await scrapeRes.json();
-                            scrapedText = scrapeData.content || "Content limited or blocked.";
+                            scrapedText = scrapeData.content;
+                        } else {
+                            throw new Error("Scraping backend API failed.");
+                        }
+                        
+                        if (!scrapedText || scrapedText.trim() === "Content limited or blocked.") {
+                            throw new Error("Scraper returned empty or limited content.");
                         }
                     } catch(err) {
-                        log(`Backend scraping failed for ${c.name}.`, 'warn');
-                        scrapedText = "Could not scrape live site.";
+                        log(`Backend scraping failed for ${c.name}: ${err.message}`, 'err');
+                        throw new Error(`Scraping failed for ${c.name}`);
                     }
 
                     log(`Extracting strictly from scraped source data for ${c.name}...`);
                     const prompt = `You are a strict data extraction AI. Extract the functional product features for "${c.name}" based ONLY on the following scraped text data.
-DO NOT hallucinate features. DO NOT use your internal knowledge. If a feature is not in the text, DO NOT list it.
+DO NOT hallucinate. DO NOT use external knowledge. If a feature is not in the text, DO NOT list it.
 For each feature extracted, provide the source URL exactly as it appears in the text block.
 
 SCRAPED TEXT:
@@ -116,7 +119,7 @@ Return ONLY a strict JSON object in this exact format with NO other text:
                     
                     let validatedFeatures = [];
                     try {
-                        const valRes = await fetch('/api/validate-features', {
+                        const valRes = await fetch('http://127.0.0.1:8000/api/validate-features', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
