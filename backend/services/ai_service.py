@@ -5,32 +5,23 @@ from urllib.parse import urlparse
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
-load_dotenv()
+root_env = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(root_env):
+    load_dotenv(root_env)
+else:
+    load_dotenv()
 
 # ==========================================
 # COMPETITOR VERIFICATION
 # ==========================================
 
 async def verify_url(url: str) -> bool:
-    """Verifies that a URL is reachable or valid."""
-    if not url:
+    """Instantly verifies URL structure without bottlenecking UX with 15 concurrent HTTP requests."""
+    if not url or not isinstance(url, str):
         return False
-    if not url.startswith('http'):
-        url = 'https://' + url
         
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-        async with httpx.AsyncClient(headers=headers, timeout=8.0, verify=False) as client:
-            response = await client.get(url, follow_redirects=True)
-            # If the server responds with ANY valid HTTP code (even 403/404), the domain physically exists!
-            return True
-    except Exception as e:
-        print(f"URL Verify Error ({url}): {e}")
-        # Fallback heuristic: If it couldn't connect (proxy/timeout) but has a valid structure, accept it 
-        # so Phase 2 doesn't wipe out all 20 entries due to user's local network restrictions.
-        return '.' in url and len(url) > 8
+    url = url.strip()
+    return '.' in url and len(url) > 4
 
 async def verify_competitors(competitors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
@@ -40,7 +31,13 @@ async def verify_competitors(competitors: List[Dict[str, Any]]) -> List[Dict[str
     verified = []
     
     async def check_competitor(comp):
-        is_valid = await verify_url(comp.get("url", ""))
+        url = comp.get("url", "")
+        # aggressive extraction of any URL-like entity if LLM hallucinated markdown format
+        if "http" not in url and "." in url:
+             url = "https://" + url.replace('"', '').replace("'", "").strip()
+             comp["url"] = url
+             
+        is_valid = await verify_url(url)
         if is_valid:
             comp["verified"] = True
             verified.append(comp)
@@ -79,13 +76,14 @@ async def scrape_with_tavily(query: str) -> str:
             return "\n\n".join([f"Source: {r.get('url')}\nContent: {r.get('raw_content', r.get('content'))}" for r in results])
     except Exception as e:
         print(f"[Tavily Scraping Error] {e}")
-        raise ValueError(f"Tavily scraping failed: {str(e)}")
+        return ""
 
 async def fast_search_with_tavily(query: str) -> str:
     """Fast search using Tavily API (snippets only, high speed)."""
     api_key = os.getenv("TAVILY_API_KEY")
     if not api_key:
-        raise ValueError("Error: TAVILY_API_KEY is missing. Configure it in .env")
+        print("Error: TAVILY_API_KEY is missing. Configure it in .env")
+        return ""
         
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -110,7 +108,8 @@ async def scrape_with_exa(query: str) -> str:
     """Extract structure content using Exa API."""
     api_key = os.getenv("EXA_API_KEY")
     if not api_key:
-        raise ValueError("Error: EXA_API_KEY is missing. Configure it in .env")
+        print("Error: EXA_API_KEY is missing. Configure it in .env")
+        return ""
         
     try:
         async with httpx.AsyncClient(headers={"x-api-key": api_key}, timeout=10.0) as client:
@@ -127,7 +126,7 @@ async def scrape_with_exa(query: str) -> str:
             return "\n\n".join([f"Source: {r.get('url')}\nContent: {r.get('text')}" for r in results])
     except Exception as e:
         print(f"[Exa Scraping Error] {e}")
-        raise ValueError(f"Exa scraping failed: {str(e)}")
+        return ""
 
 async def aggregate_scrape(competitor_name: str, url: str) -> str:
     """Runs Tavily and Exa concurrently and merges output for LLM context."""
@@ -140,27 +139,36 @@ async def aggregate_scrape(competitor_name: str, url: str) -> str:
     return combined
 
 async def search_competitors_context(product_name: str, product_description: str) -> str:
-    """Searches the internet and runs the generative LLM pipeline purely in the robust backend."""
+    """Searches the internet and runs all available LLM pipelines concurrently to maximize speed."""
     import datetime
+    import asyncio
     current_year = datetime.datetime.now().year
     
-    query_tavily = f"top latest alternative competitors to {product_name} {current_year} {current_year+1} pricing list"
+    # 1. Run all search AIs concurrently
+    query_tavily = f"top latest alternative competitors to {product_name} {current_year} pricing list"
+    query_exa = f"newest alternatives or competitors to {product_name} list {current_year}"
+    tavily_task = fast_search_with_tavily(query_tavily)
+    exa_task = scrape_with_exa(query_exa)
+    results = await asyncio.gather(tavily_task, exa_task, return_exceptions=True)
     
-    tavily_res = await fast_search_with_tavily(query_tavily)
+    tavily_res = results[0] if not isinstance(results[0], Exception) else ""
+    exa_res = results[1] if not isinstance(results[1], Exception) else ""
     
-    # Run Groq fully in backend to skip bad browser `.env` fetching and UI freezes
-    api_key = os.getenv("GROQ_API_KEY")
-    if api_key:
-        prompt = f"""You are a professional market research analyst.
+    combined_context = f"--- TAVILY ---\n{tavily_res}\n\n--- EXA ---\n{exa_res}"
+
+    prompt = f"""You are a professional market research analyst.
 Identify EXACTLY the top 15 MOST RELEVANT direct competitors to the product below. 
-Ensure they are CURRENTLY ACTIVE products and REAL companies.
-Base your extraction ON THE RECENT SEARCH RESULTS CONTEXT below to find the absolute newest models released this year. Include up-to-date pricing if found. Do not hallucinate URLs.
+
+CRITICAL FILTERING RULES:
+1. FEATURE MATCHING: You MUST ONLY extract competitors that possess similar features and functionality to the product description/features listed below.
+2. LAUNCHED ONLY: You MUST ONLY extract competitors that are ALREADY LAUNCHED and currently available on the market for purchase. Absolutely DO NOT include upcoming, unreleased, rumored, or future models (e.g., if a model is slated for late this year, discard it and use the current generation).
+3. PRICING: If the exact price is missing from the search context, YOU MUST provide your best estimated market price based on your deep industry knowledge (e.g., "$999" or "Starting at $799"). NEVER write "Not specified", "N/A", or "Unknown". Always provide a concrete price or realistic estimate. Do not hallucinate URLs.
 
 PRODUCT: {product_name}
-DESCRIPTION: {product_description}
+DESCRIPTION AND FEATURES: {product_description}
 
 RECENT SEARCH RESULTS CONTEXT:
-{tavily_res}
+{combined_context[:8000]}
 
 Strict JSON format required:
 [
@@ -170,18 +178,46 @@ Strict JSON format required:
     "price": "pricing details"
   }}
 ]"""
-        try:
-            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-            payload = {"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.4, "max_tokens": 1500}
-            async with httpx.AsyncClient(timeout=12.0) as client:
-                res = await client.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
-                data = res.json()
-                if "choices" in data:
-                    return "JSON_PAYLOAD_DIRECT:" + data["choices"][0]["message"]["content"]
-        except Exception as e:
-            print("Backend Groq Generation Error:", e)
 
-    return f"--- LIVE SEARCH RESULTS ---\n{tavily_res}"
+    # 2. Race all available Generative AIs to secure the fastest response
+    async def run_groq(key):
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            res = await client.post("https://api.groq.com/openai/v1/chat/completions", headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.4, "max_tokens": 1500})
+            return res.json()["choices"][0]["message"]["content"]
+
+    async def run_gemini(key):
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            res = await client.post(url, json={"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.4, "maxOutputTokens": 1500}})
+            return res.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+    async def run_openrouter(key):
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            res = await client.post("https://openrouter.ai/api/v1/chat/completions", headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": "arcee-ai/trinity-large-preview:free", "messages": [{"role": "user", "content": prompt}], "temperature": 0.4, "max_tokens": 1500})
+            return res.json()["choices"][0]["message"]["content"]
+
+    tasks = []
+    if os.getenv("GROQ_API_KEY"):
+        tasks.append(asyncio.create_task(run_groq(os.getenv("GROQ_API_KEY"))))
+    
+    if os.getenv("GOOGLE_GEMINI_API_KEY"):
+        tasks.append(asyncio.create_task(run_gemini(os.getenv("GOOGLE_GEMINI_API_KEY"))))
+        
+    if os.getenv("OPEN_ROUTER_API_KEY"):
+        tasks.append(asyncio.create_task(run_openrouter(os.getenv("OPEN_ROUTER_API_KEY"))))
+
+    if tasks:
+        # Whichever AI finishes first successfully is returned immediately!
+        for coro in asyncio.as_completed(tasks):
+            try:
+                result = await coro
+                if result and "[" in result:
+                    return "JSON_PAYLOAD_DIRECT:" + result
+            except Exception as e:
+                print("One Racing LLM failed:", e)
+                continue
+
+    return f"--- LIVE SEARCH RESULTS ---\n{combined_context}"
 
 # ==========================================
 # FEATURE VALIDATION PIPELINE

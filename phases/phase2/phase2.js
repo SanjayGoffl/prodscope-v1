@@ -31,16 +31,15 @@ export function init() {
 
     function renderCompGrid() {
         if (!grid) return;
-        // Dynamically scales to support 10-20+ competitors. Utilizing CSS Grid ensures it won't break UI.
-        grid.innerHTML = state.competitors.map((c, i) => `
+        grid.innerHTML = state.competitors.slice(0, 20).map((c, i) => `
             <div class="comp-card ${c.selected ? 'selected' : ''}" id="cc-${i}">
                 <button class="remove-btn" onclick="removeCompetitor(${i})"><i class="fa-solid fa-xmark"></i></button>
                 <div class="comp-name">
                     ${c.name}
                     ${c.verified ? '<i class="fa-solid fa-circle-check text-green" title="Verified Active"></i>' : ''}
                 </div>
-                <div class="comp-domain"><i class="fa-solid fa-link"></i> <a href="${c.url}" target="_blank" style="color:inherit;text-decoration:none;">${c.url}</a></div>
-                ${c.price ? `<span class="badge badge-yellow">${c.price}</span>` : ''}
+                <div class="comp-domain"><i class="fa-solid fa-link"></i> <a href="${c.url}" target="_blank" style="color:inherit;text-decoration:none;">${c.domain || c.url}</a></div>
+                ${c.price && c.price !== 'N/A' ? `<span class="badge badge-yellow">${c.price}</span>` : ''}
                 <div class="comp-actions">
                     <label class="comp-check-label">
                         <input type="checkbox" ${c.selected ? 'checked' : ''} onchange="toggleCompetitor(${i}, this.checked)" />
@@ -54,6 +53,10 @@ export function init() {
 
     async function discoverCompetitors() {
         if (!discoveryStatus) return;
+        
+        // CLEAR previous state before new run
+        updateState({ competitors: [] });
+        
         discoveryStatus.textContent = '🤖 Running Advanced AI discovery... (Expanding search to 10-20 competitors)';
         if (grid) grid.innerHTML = `<div class="text-secondary text-sm" style="padding:.5rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Discovering broad range of competitors via AI agents...</div>`;
 
@@ -61,62 +64,130 @@ export function init() {
             ? state.product.features.map(f => f.name || f).join(', ')
             : 'General functionality';
 
-        // Updated prompt to specifically request 10-20 active products without hallucination mapping
+        // STEP 0: Delegate heavy generation to Python backend 
+        discoveryStatus.textContent = '🌐 Interacting with high-speed backend execution layer...';
+        let finalRawLLM = null;
+        let liveContext = "No live context found.";
+        try {
+            const fullDescWithFeatures = state.product.description + "\nFEATURES: " + productFeatures;
+            const searchRes = await fetch('http://127.0.0.1:8000/api/search-competitors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    product_name: state.product.name, 
+                    product_description: fullDescWithFeatures 
+                })
+            });
+            if (searchRes.ok) {
+                const searchData = await searchRes.json();
+                if (searchData.context && searchData.context.startsWith("JSON_PAYLOAD_DIRECT:")) {
+                     finalRawLLM = searchData.context.replace("JSON_PAYLOAD_DIRECT:", "");
+                } else {
+                     liveContext = searchData.context;
+                }
+            }
+        } catch(err) {
+            console.warn("Backend rapid execution failed, falling back to local processing.", err);
+        }
+
+        // Updated prompt to specifically request 15 active products without hallucination mapping
         const prompt = `You are a professional market research analyst.
-Identify at least 10 to 15 direct competitors to the product below. 
-Generate a BROAD list, but ensure they are CURRENTLY ACTIVE products and REAL companies. Do not hallucinate URLs. Include up-to-date pricing if typically publicly available.
+Identify EXACTLY the top 15 MOST RELEVANT direct competitors to the product below. 
+Ensure they are CURRENTLY ACTIVE products and REAL companies.
+CRITICALLY IMPORTANT: Base your extraction ON THE RECENT SEARCH RESULTS CONTEXT below to find the absolute newest models released this year. Do not rely heavily on your old knowledge. Include up-to-date pricing if found. Do not hallucinate URLs.
 
 PRODUCT: ${state.product.name}
 DESCRIPTION: ${state.product.description}
 FEATURES: ${productFeatures}
 
-Strict JSON format required:
-[
-  {
-    "name": "Competitor Name",
-    "url": "https://example.com",
-    "price": "pricing details or amount"
-  }
-]`;
+RECENT SEARCH RESULTS CONTEXT (USE THIS TO FIND NEWEST RELEASES):
+${liveContext}
+
+        Strict JSON format required:
+        [
+          {
+            "name": "Competitor Name",
+            "url": "https://www.company.com", // MUST be the root domain only (e.g., https://www.apple.com). Do not provide full product pages as they often 404. Must include https://
+            "price": "pricing details or amount"
+          }
+        ]`;
 
         try {
-            // STEP 1: Generate Competitors via AI (Frontend calls LLM)
-            const raw = await callLLM(prompt, 'gemini', 3000);
+            let raw = finalRawLLM;
+            if (!raw) {
+                 discoveryStatus.textContent = '🤖 Analyzing live search data via frontend AI chain...';
+                 raw = await callLLM(prompt, 'groq_general', 2000);
+            }
             let cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
             const start = cleaned.indexOf('[');
             const end = cleaned.lastIndexOf(']');
             if (start === -1 || end === -1) throw new Error("Invalid format returned by LLM");
             
-            let parsed = JSON.parse(cleaned.slice(start, end + 1));
+            let unverifiedCompetitors = [];
+            try {
+                unverifiedCompetitors = JSON.parse(cleaned.substring(start, end + 1));
+                
+                // Format appropriately before sending to backend if JSON parse succeeded
+                unverifiedCompetitors = unverifiedCompetitors.map(c => ({
+                    name: c.name ? c.name.trim() : "Unknown",
+                    url: c.url ? c.url.trim() : "",
+                    price: c.price,
+                    verified: false
+                }));
+            } catch(e) {
+                console.warn("JSON Parse failed, executing supreme regex extractor", e);
+                // Bulletproof regex that finds any object-like structure with a URL
+                const urlRegex = /"https?:\/\/[^"]+"/gi;
+                
+                const lines = cleaned.split('\n');
+                let tempComp = {};
+                for (let line of lines) {
+                    if (line.includes('http')) {
+                        let urlMatch = line.match(urlRegex);
+                        if (urlMatch) {
+                            unverifiedCompetitors.push({
+                                name: tempComp.name || "Competitor",
+                                url: urlMatch[0].replace(/"/g, ''),
+                                price: tempComp.price || "Check website"
+                            });
+                            tempComp = {}; // reset
+                        }
+                    } else if (line.toLowerCase().includes('name')) {
+                        let parts = line.split(':');
+                        if (parts.length > 1) tempComp.name = parts[1].replace(/["',]/g, '').trim();
+                    } else if (line.toLowerCase().includes('price')) {
+                        let parts = line.split(':');
+                        if (parts.length > 1) tempComp.price = parts[1].replace(/["',]/g, '').trim();
+                    }
+                }
+            }
 
-            // Format appropriately before sending to backend
-            let unverifiedCompetitors = parsed.map(c => ({
-                name: c.name,
-                url: c.url,
-                price: c.price,
-                verified: false
-            }));
+            if (unverifiedCompetitors.length === 0) {
+                // Absolute failsafe fallback to ensure UI never freezes on regex misses
+                unverifiedCompetitors = finalRawLLM.match(/https?:\/\/[^\s"',)]+/g)?.map((url, i) => ({
+                    name: `Competitor ${i+1}`,
+                    url: url,
+                    price: "See website"
+                })) || [];
+                 if (unverifiedCompetitors.length === 0) throw new Error("Could not parse competitors from AI.");
+            }
             
             discoveryStatus.textContent = `⏳ Verifying and filtering ${unverifiedCompetitors.length} competitors through backend validation layer...`;
 
             // STEP 2: Verify URLs via Backend API (Filters out dead links/fakes)
             let verifiedCompetitors = [];
-            try {
-                const apiRes = await fetch('/api/verify-competitors', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ competitors: unverifiedCompetitors })
-                });
+            
+            const apiRes = await fetch('http://127.0.0.1:8000/api/verify-competitors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ competitors: unverifiedCompetitors })
+            });
 
-                if (apiRes.ok) {
-                    const verificationResponse = await apiRes.json();
-                    verifiedCompetitors = verificationResponse.verified || unverifiedCompetitors;
-                } else {
-                    verifiedCompetitors = unverifiedCompetitors;
-                }
-            } catch (err) {
-                console.warn("Backend verification failed. Proceeding with raw data.", err);
-                verifiedCompetitors = unverifiedCompetitors; 
+            if (apiRes.ok) {
+                const verificationResponse = await apiRes.json();
+                verifiedCompetitors = verificationResponse.verified || [];
+            } else {
+                throw new Error("Backend verification API failed.");
             }
 
             if (verifiedCompetitors.length === 0) {
@@ -138,7 +209,7 @@ Strict JSON format required:
             discoveryStatus.textContent = `✅ Successfully found and verified ${finalCompetitors.length} active competitors.`;
         } catch (e) {
             console.error(e);
-            discoveryStatus.textContent = '❌ Discovery failed. Please add manually.';
+            discoveryStatus.textContent = `❌ Discovery failed: ${e.message}`;
             if (grid) grid.innerHTML = '';
         }
     }
